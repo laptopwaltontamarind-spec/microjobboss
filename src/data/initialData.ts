@@ -1,0 +1,224 @@
+import { 
+  GatewayConfigItem, 
+  LiveTickerItem, 
+  MiningPlan, 
+  PlatformSettings, 
+  SupportTicket, 
+  User, 
+  UserInvestment, 
+  DepositTransaction, 
+  WithdrawTransaction, 
+  WalletAuditLog,
+  PasswordResetRequest
+} from '../types';
+
+export const DEFAULT_MINING_PLANS: MiningPlan[] = [
+  {
+    id: 'plan_standard_12',
+    name: 'Standard Mining Plan',
+    dailyRoiPercent: 12.0,
+    minDeposit: 100,
+    maxDeposit: 100000,
+    durationDays: 30,
+    badge: 'HOT POPULAR',
+    description: 'Earn 12% daily guaranteed mining profit for 30 days. Auto payout every 24 hours directly to your main wallet balance.',
+    features: [
+      'Daily 12.00% Auto Return',
+      'Min: ৳100 - Max: ৳1,00,000',
+      '30-Day Lock Period with Auto Payout',
+      'Re-invest option upon maturity',
+      'Instant Claim / 24h Countdown Cycle',
+      '50 ৳ Instant Referrer Bonus on Purchase'
+    ]
+  },
+  {
+    id: 'plan_starter_micro',
+    name: 'Starter Micro Mining',
+    dailyRoiPercent: 12.0,
+    minDeposit: 100,
+    maxDeposit: 1000,
+    durationDays: 30,
+    badge: 'BEGINNER FRIENDLY',
+    description: 'Perfect for first-time users. Test the mining power with as low as ৳100.',
+    features: [
+      'Daily 12.00% Return (৳12 - ৳120 / day)',
+      '30 Days Active Yield Duration',
+      'Instant bKash/Nagad/Rocket/mCash Cashout',
+      'Zero withdrawal processing fee'
+    ]
+  },
+  {
+    id: 'plan_vip_boss',
+    name: 'Boss VIP High-Yield',
+    dailyRoiPercent: 12.0,
+    minDeposit: 5000,
+    maxDeposit: 100000,
+    durationDays: 30,
+    badge: 'VIP YIELD',
+    description: 'For high-frequency earners. Maximize your daily cashflow with priority withdrawals.',
+    features: [
+      'Daily 12.00% Return (৳600 - ৳12,000 / day)',
+      'VIP Priority 5-Minute Cashout Processing',
+      'Dedicated 24/7 VIP Telegram Manager',
+      '360% Total 30-Day ROI'
+    ]
+  }
+];
+
+export const DEFAULT_GATEWAYS: Record<string, GatewayConfigItem> = {
+  bKash: {
+    gateway: 'bKash',
+    name: 'bKash Personal / Send Money',
+    accountNumber: '01798-245190',
+    accountType: 'Personal',
+    minDeposit: 100,
+    maxDeposit: 100000,
+    minWithdraw: 150,
+    maxWithdraw: 50000,
+    withdrawFeePercent: 15.0,
+    isActive: true,
+    instructions: 'Go to your bKash App or dial *247# -> Send Money to this number -> Copy Transaction ID (TrxID) and enter below.',
+    iconColor: '#E2136E',
+    bgColor: 'rgba(226, 19, 110, 0.12)'
+  },
+  Nagad: {
+    gateway: 'Nagad',
+    name: 'Nagad Personal / Send Money',
+    accountNumber: '01882-771920',
+    accountType: 'Personal',
+    minDeposit: 100,
+    maxDeposit: 100000,
+    minWithdraw: 150,
+    maxWithdraw: 50000,
+    withdrawFeePercent: 15.0,
+    isActive: true,
+    instructions: 'Go to your Nagad App or dial *167# -> Send Money to this number -> Copy Transaction ID (TrxID) and enter below.',
+    iconColor: '#F7941D',
+    bgColor: 'rgba(247, 148, 29, 0.12)'
+  },
+  Rocket: {
+    gateway: 'Rocket',
+    name: 'Dutch-Bangla Rocket Personal',
+    accountNumber: '01915-3829104',
+    accountType: 'Personal',
+    minDeposit: 100,
+    maxDeposit: 100000,
+    minWithdraw: 150,
+    maxWithdraw: 50000,
+    withdrawFeePercent: 15.0,
+    isActive: true,
+    instructions: 'Go to your DBBL Rocket App or dial *322# -> Send Money to this 12-digit number -> Enter TrxID below.',
+    iconColor: '#8C3494',
+    bgColor: 'rgba(140, 52, 148, 0.12)'
+  },
+  mCash: {
+    gateway: 'mCash',
+    name: 'Islami Bank mCash',
+    accountNumber: '01620-8910452',
+    accountType: 'Personal',
+    minDeposit: 100,
+    maxDeposit: 100000,
+    minWithdraw: 150,
+    maxWithdraw: 50000,
+    withdrawFeePercent: 15.0,
+    isActive: true,
+    instructions: 'Send money to our official IBBL mCash wallet number and submit your sender number & Transaction code.',
+    iconColor: '#00833E',
+    bgColor: 'rgba(0, 131, 62, 0.12)'
+  }
+};
+
+export const DEFAULT_USERS: User[] = [
+  {
+    id: 'user_boss_admin',
+    memberCode: 'BOSS-ADMIN',
+    name: 'Super Admin',
+    phone: '01700000000',
+    email: 'admin@microjobboss.com',
+    password: 'admin',
+    walletBalance: 0,
+    totalDeposited: 0,
+    totalWithdrawn: 0,
+    totalMiningEarned: 0,
+    referralCode: 'BOSSMASTER',
+    referralCount: 0,
+    referralEarnings: 0,
+    isBanned: false,
+    role: 'admin',
+    createdAt: '2025-01-01T00:00:00.000Z',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+  }
+];
+
+export const DEFAULT_INVESTMENTS: UserInvestment[] = [];
+
+export const DEFAULT_DEPOSITS: DepositTransaction[] = [];
+
+export const DEFAULT_WITHDRAWS: WithdrawTransaction[] = [];
+
+export const DEFAULT_AUDIT_LOGS: WalletAuditLog[] = [];
+
+export const DEFAULT_TICKERS: LiveTickerItem[] = [
+  {
+    id: 'tk_1',
+    type: 'deposit',
+    userMask: '017****5892',
+    amount: 2500,
+    gateway: 'bKash',
+    timeAgo: '2m ago',
+    timestamp: Date.now() - 120000
+  },
+  {
+    id: 'tk_2',
+    type: 'withdraw',
+    userMask: '019****1104',
+    amount: 1450,
+    gateway: 'Nagad',
+    timeAgo: '4m ago',
+    timestamp: Date.now() - 240000
+  },
+  {
+    id: 'tk_3',
+    type: 'deposit',
+    userMask: '018****9921',
+    amount: 5000,
+    gateway: 'Rocket',
+    timeAgo: '7m ago',
+    timestamp: Date.now() - 420000
+  },
+  {
+    id: 'tk_4',
+    type: 'withdraw',
+    userMask: '016****4431',
+    amount: 820,
+    gateway: 'bKash',
+    timeAgo: '11m ago',
+    timestamp: Date.now() - 660000
+  },
+  {
+    id: 'tk_5',
+    type: 'deposit',
+    userMask: '017****0034',
+    amount: 10000,
+    gateway: 'mCash',
+    timeAgo: '15m ago',
+    timestamp: Date.now() - 900000
+  }
+];
+
+export const DEFAULT_SUPPORT_TICKETS: SupportTicket[] = [];
+
+export const DEFAULT_RESET_REQUESTS: PasswordResetRequest[] = [];
+
+export const DEFAULT_SETTINGS: PlatformSettings = {
+  siteName: 'MICROJOBBOSS',
+  totalMembersCount: 14892,
+  totalDepositsVolume: 18452000,
+  totalWithdrawsVolume: 13920500,
+  referralBonusPerPlan: 50, // ৳50 direct commission
+  telegramSupportUrl: 'https://t.me/microjobboss_official',
+  whatsappSupportUrl: 'https://wa.me/8801700000000',
+  helplinePhone: '+880 1700-000000',
+  announcementNotice: '🔥 Welcome to MICROJOBBOSS! Enjoy 12% daily return with 30-day continuous mining cycle. Instant bKash, Nagad, Rocket, mCash cashouts 24/7! Refer friends and earn ৳50 instant commission per plan.',
+  isMaintenanceMode: false
+};
