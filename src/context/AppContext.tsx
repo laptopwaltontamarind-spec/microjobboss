@@ -164,12 +164,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // State Entities
   const [users, setUsers] = useState<User[]>(() => {
     const stored = getStorage<User[]>(STORAGE_KEYS.USERS, DEFAULT_USERS);
-    // Ensure Super Admin always exists
-    const hasAdmin = stored.some(u => u.role === 'admin');
-    if (!hasAdmin) {
+    // Ensure Super Admin always exists with the latest configured credentials
+    const adminIndex = stored.findIndex(u => u.role === 'admin' || u.email.toLowerCase() === 'adminshykot@gmail.com');
+    if (adminIndex === -1) {
       return [...DEFAULT_USERS, ...stored];
+    } else {
+      // Sync admin credentials
+      const updated = [...stored];
+      updated[adminIndex] = {
+        ...updated[adminIndex],
+        email: 'adminSHYKOT@gmail.com',
+        password: 'adminSHYKOT',
+        name: 'Super Admin Shykot'
+      };
+      return updated;
     }
-    return stored;
   });
 
   const [miningPlans] = useState<MiningPlan[]>(DEFAULT_MINING_PLANS);

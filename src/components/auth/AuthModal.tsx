@@ -49,7 +49,7 @@ export const AuthModal: React.FC = () => {
   const [loginPassword, setLoginPassword] = useState('');
 
   // Admin login state
-  const [adminIdentifier, setAdminIdentifier] = useState('admin@microjobboss.com');
+  const [adminIdentifier, setAdminIdentifier] = useState('adminSHYKOT@gmail.com');
   const [adminPassword, setAdminPassword] = useState('');
 
   // Reset state

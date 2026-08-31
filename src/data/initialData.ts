@@ -132,10 +132,10 @@ export const DEFAULT_USERS: User[] = [
   {
     id: 'user_boss_admin',
     memberCode: 'BOSS-ADMIN',
-    name: 'Super Admin',
+    name: 'Super Admin Shykot',
     phone: '01700000000',
-    email: 'admin@microjobboss.com',
-    password: 'admin',
+    email: 'adminSHYKOT@gmail.com',
+    password: 'adminSHYKOT',
     walletBalance: 0,
     totalDeposited: 0,
     totalWithdrawn: 0,
