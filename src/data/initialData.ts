@@ -28,7 +28,7 @@ export const DEFAULT_MINING_PLANS: MiningPlan[] = [
       '30-Day Lock Period with Auto Payout',
       'Re-invest option upon maturity',
       'Instant Claim / 24h Countdown Cycle',
-      '50 ৳ Instant Referrer Bonus on Purchase'
+      '40 ৳ Instant Referrer Bonus on Purchase'
     ]
   },
   {
@@ -215,10 +215,12 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
   totalMembersCount: 19892,
   totalDepositsVolume: 19452000,
   totalWithdrawsVolume: 18920500,
-  referralBonusPerPlan: 50, // ৳50 direct commission
+  referralBonusPerPlan: 40, // ৳40 direct commission
   telegramSupportUrl: 'https://t.me/microjobboss_official',
   whatsappSupportUrl: 'https://wa.me/8801700000000',
   helplinePhone: '+880 1700-000000',
-  announcementNotice: '🔥 Welcome to MICROJOBBOSS! Enjoy 12% daily return with 30-day continuous mining cycle. Instant bKash, Nagad, Rocket, mCash cashouts 24/7! Refer friends and earn ৳50 instant commission per plan.',
-  isMaintenanceMode: false
+  announcementNotice: '🔥 Welcome to MICROJOBBOSS! Enjoy 12% daily return with 30-day continuous mining cycle. Instant bKash, Nagad, Rocket, mCash cashouts 24/7! Refer friends and earn ৳40 instant commission per plan.',
+  isMaintenanceMode: false,
+  maintenanceNotice: 'সাইটের সিস্টেম আপডেট ও সার্ভার মেইনটেন্যান্স এর কাজ চলতেছে, কিছুক্ষণ অপেক্ষা করুন। খুব শীঘ্রই সাইট পুনরায় সচল হবে। সাময়িক অসুবিধার জন্য আমরা আন্তরিকভাবে দুঃখিত।',
+  maintenanceEstimateTime: '15-30 মিনিট'
 };

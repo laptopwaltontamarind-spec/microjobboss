@@ -191,7 +191,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [resetRequests, setResetRequests] = useState<PasswordResetRequest[]>(() => getStorage<PasswordResetRequest[]>(STORAGE_KEYS.RESETS, DEFAULT_RESET_REQUESTS));
   const [gateways, setGateways] = useState<Record<string, GatewayConfigItem>>(() => getStorage<Record<string, GatewayConfigItem>>(STORAGE_KEYS.GATEWAYS, DEFAULT_GATEWAYS));
   const [liveTickers, setLiveTickers] = useState<LiveTickerItem[]>(() => getStorage<LiveTickerItem[]>(STORAGE_KEYS.TICKERS, DEFAULT_TICKERS));
-  const [settings, setSettings] = useState<PlatformSettings>(() => getStorage<PlatformSettings>(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS));
+  const [settings, setSettings] = useState<PlatformSettings>(() => {
+    const stored = getStorage<Partial<PlatformSettings>>(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
+    return {
+      ...DEFAULT_SETTINGS,
+      ...stored,
+      referralBonusPerPlan: (stored?.referralBonusPerPlan === 50 || !stored?.referralBonusPerPlan) ? 40 : stored.referralBonusPerPlan,
+      isMaintenanceMode: typeof stored?.isMaintenanceMode === 'boolean' ? stored.isMaintenanceMode : false,
+      maintenanceNotice: stored?.maintenanceNotice || DEFAULT_SETTINGS.maintenanceNotice,
+      maintenanceEstimateTime: stored?.maintenanceEstimateTime || DEFAULT_SETTINGS.maintenanceEstimateTime
+    };
+  });
 
   // Current Logged-in Entities (Clean start for live site: no auto-login to demo users)
   const [currentUserId, setCurrentUserId] = useState<string | null>(() => getStorage<string | null>(STORAGE_KEYS.CURRENT_USER_ID, null));
@@ -409,17 +419,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const loginAdmin = (identifier: string, pass: string) => {
-    const trimmed = identifier.trim().toLowerCase();
-    const adminUser = users.find(u => 
-      (u.email.toLowerCase() === trimmed || 
-       u.phone === identifier.trim() || 
-       u.memberCode.toLowerCase() === trimmed) && 
-      (u.role === 'admin' || u.role === 'moderator') &&
-      u.password === pass
-    );
+    const rawId = identifier.trim();
+    const cleanIdLower = rawId.toLowerCase();
+    const cleanIdPhone = normalizePhone(rawId);
+    const cleanPass = pass.trim();
+
+    const adminUser = users.find(u => {
+      if (u.role !== 'admin' && u.role !== 'moderator') return false;
+      const uPhoneClean = normalizePhone(u.phone);
+      const isPhoneMatch = cleanIdPhone.length >= 8 && uPhoneClean === cleanIdPhone;
+      const isEmailMatch = u.email.toLowerCase() === cleanIdLower;
+      const isMemberCodeMatch = u.memberCode.toLowerCase() === cleanIdLower;
+
+      if (!isPhoneMatch && !isEmailMatch && !isMemberCodeMatch) return false;
+
+      return u.password === pass || u.password.trim() === cleanPass;
+    });
 
     if (!adminUser) {
-      return { success: false, message: 'Invalid Admin/Moderator credentials.' };
+      return { success: false, message: 'ভুল অ্যাডমিন/মডারেটর ইউজারনেম অথবা পাসওয়ার্ড!' };
     }
 
     if (adminUser.isBanned) {
@@ -427,6 +445,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     setCurrentAdminId(adminUser.id);
+    setStorage(STORAGE_KEYS.CURRENT_ADMIN_ID, adminUser.id);
     setCurrentPortal('admin');
     setIsAuthModalOpen(false);
     toast(`Authenticated as ${adminUser.role.toUpperCase()}: ${adminUser.name}`, 'success');
@@ -547,11 +566,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setAuditLogs(prev => [purchaseAudit, ...prev]);
 
-    // MLM Referral ৳50 bonus distribution
+    // MLM Referral ৳40 bonus distribution
     if (currentUser.referredBy) {
       const referrer = users.find(u => u.memberCode === currentUser.referredBy || u.referralCode === currentUser.referredBy);
       if (referrer) {
-        const bonusAmount = settings.referralBonusPerPlan || 50;
+        const bonusAmount = settings.referralBonusPerPlan || 40;
         setUsers(prev => prev.map(u => {
           if (u.id === referrer.id) {
             return {
@@ -1278,7 +1297,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         canAdjustWallet: false,
         canManageSupport: true,
         canEditGateways: false,
-        canViewAuditLogs: true
+        canViewAuditLogs: true,
+        canManageMaintenance: false
       },
       createdAt: new Date().toISOString()
     };

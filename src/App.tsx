@@ -6,6 +6,7 @@ import { LandingPage } from './components/landing/LandingPage';
 import { UserDashboard } from './components/user/UserDashboard';
 import { AdminPortal } from './components/admin/AdminPortal';
 import { AuthModal } from './components/auth/AuthModal';
+import { MaintenanceScreen } from './components/common/MaintenanceScreen';
 import { AlertCircle, CheckCircle2, Info } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
@@ -14,6 +15,7 @@ const MainLayout: React.FC = () => {
     setCurrentPortal,
     currentUser, 
     currentAdmin,
+    settings,
     toastMessage, 
     setAuthModalMode, 
     setIsAuthModalOpen 
@@ -78,12 +80,14 @@ const MainLayout: React.FC = () => {
       <Header />
 
       {/* Real-time Live Payouts Ticker Bar */}
-      <LiveTickerBar />
+      {!settings.isMaintenanceMode && <LiveTickerBar />}
 
-      {/* View Switcher: User Portal vs Admin Portal (Strictly Admin only) */}
+      {/* View Switcher: Maintenance Mode vs User Portal vs Admin Portal (Strictly Admin only) */}
       <main className="flex-1">
         {currentPortal === 'admin' && currentAdmin ? (
           <AdminPortal />
+        ) : settings.isMaintenanceMode ? (
+          <MaintenanceScreen />
         ) : (
           currentUser ? <UserDashboard /> : <LandingPage />
         )}

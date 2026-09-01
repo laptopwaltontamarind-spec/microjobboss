@@ -10,6 +10,7 @@ export interface ModeratorPermissions {
   canManageSupport: boolean;
   canEditGateways: boolean;
   canViewAuditLogs: boolean;
+  canManageMaintenance?: boolean;
 }
 
 export interface User {
@@ -184,10 +185,12 @@ export interface PlatformSettings {
   totalMembersCount: number;
   totalDepositsVolume: number;
   totalWithdrawsVolume: number;
-  referralBonusPerPlan: number; // ৳50
+  referralBonusPerPlan: number; // ৳40
   telegramSupportUrl: string;
   whatsappSupportUrl: string;
   helplinePhone: string;
   announcementNotice: string;
   isMaintenanceMode: boolean;
+  maintenanceNotice: string;
+  maintenanceEstimateTime: string;
 }
