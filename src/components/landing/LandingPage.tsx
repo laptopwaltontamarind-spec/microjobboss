@@ -573,7 +573,16 @@ export const LandingPage: React.FC = () => {
             <div className="flex items-center gap-4 text-slate-500">
               <span>Domain: microjobboss.com</span>
               <span>•</span>
-              <span className="text-emerald-400">● 100% Encrypted & Verified</span>
+              <button 
+                onClick={() => {
+                  setAuthModalMode('admin_login');
+                  setIsAuthModalOpen(true);
+                }}
+                className="text-emerald-400 hover:underline flex items-center gap-1 cursor-default text-left"
+                title="System Security Node"
+              >
+                ● 100% Encrypted & Verified
+              </button>
             </div>
           </div>
         </div>

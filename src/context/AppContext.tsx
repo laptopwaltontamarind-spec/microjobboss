@@ -298,6 +298,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setCurrentUserId(user.id);
     setStorage(STORAGE_KEYS.CURRENT_USER_ID, user.id);
+    setCurrentAdminId(null);
+    setStorage(STORAGE_KEYS.CURRENT_ADMIN_ID, null);
+    setCurrentPortal('user');
     setIsAuthModalOpen(false);
     toast(`স্বাগতম, ${user.name}! সফলভাবে লগইন হয়েছে।`, 'success');
     return { success: true, message: 'Login successful' };
@@ -389,6 +392,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setCurrentUserId(newUser.id);
     setStorage(STORAGE_KEYS.CURRENT_USER_ID, newUser.id);
+    setCurrentAdminId(null);
+    setStorage(STORAGE_KEYS.CURRENT_ADMIN_ID, null);
+    setCurrentPortal('user');
     setIsAuthModalOpen(false);
     confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
     toast(`অভিনন্দন! একাউন্ট সফল হয়েছে। আপনার মেম্বার আইডি: ${memberCode}`, 'success');
@@ -397,6 +403,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const logoutUser = () => {
     setCurrentUserId(null);
+    setStorage(STORAGE_KEYS.CURRENT_USER_ID, null);
+    setCurrentPortal('user');
     toast('Logged out successfully', 'info');
   };
 

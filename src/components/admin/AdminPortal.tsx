@@ -31,7 +31,9 @@ import {
   Clock,
   Eye,
   Check,
-  ChevronDown
+  ChevronDown,
+  ExternalLink,
+  LogOut
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { User, GatewayType, SupportTicket } from '../../types';
@@ -41,6 +43,8 @@ export const AdminPortal: React.FC = () => {
     currentAdmin,
     activeAdminTab,
     setActiveAdminTab,
+    setCurrentPortal,
+    logoutAdmin,
     users,
     deposits,
     withdraws,
@@ -228,16 +232,37 @@ export const AdminPortal: React.FC = () => {
           </div>
         </div>
 
-        {/* Global Member Quick Search Input */}
-        <div className="w-full md:w-80 relative">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
-          <input
-            type="text"
-            placeholder="Search Member ID / Phone / Email..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-rose-500 transition-colors"
-          />
+        {/* Global Member Quick Search Input & Actions */}
+        <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full md:w-auto">
+          <div className="w-full sm:w-64 relative">
+            <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+            <input
+              type="text"
+              placeholder="Search Member ID / Phone / Email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-rose-500 transition-colors"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={() => setCurrentPortal('user')}
+              className="flex-1 sm:flex-none px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+              title="Switch to User Portal view"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+              <span>User Site</span>
+            </button>
+            <button
+              onClick={logoutAdmin}
+              className="flex-1 sm:flex-none px-3 py-2 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-600/40 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+              title="Logout Admin Session"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Logout</span>
+            </button>
+          </div>
         </div>
       </div>
 
