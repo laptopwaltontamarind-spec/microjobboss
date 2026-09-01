@@ -69,7 +69,7 @@ export const DEFAULT_GATEWAYS: Record<string, GatewayConfigItem> = {
   bKash: {
     gateway: 'bKash',
     name: 'bKash Personal / Send Money',
-    accountNumber: '01798-245190',
+    accountNumber: '01798-56656',
     accountType: 'Personal',
     minDeposit: 100,
     maxDeposit: 100000,
@@ -84,7 +84,7 @@ export const DEFAULT_GATEWAYS: Record<string, GatewayConfigItem> = {
   Nagad: {
     gateway: 'Nagad',
     name: 'Nagad Personal / Send Money',
-    accountNumber: '01882-771920',
+    accountNumber: '01882-798980',
     accountType: 'Personal',
     minDeposit: 100,
     maxDeposit: 100000,
@@ -99,7 +99,7 @@ export const DEFAULT_GATEWAYS: Record<string, GatewayConfigItem> = {
   Rocket: {
     gateway: 'Rocket',
     name: 'Dutch-Bangla Rocket Personal',
-    accountNumber: '01915-3829104',
+    accountNumber: '01915-909090',
     accountType: 'Personal',
     minDeposit: 100,
     maxDeposit: 100000,
@@ -114,7 +114,7 @@ export const DEFAULT_GATEWAYS: Record<string, GatewayConfigItem> = {
   mCash: {
     gateway: 'mCash',
     name: 'Islami Bank mCash',
-    accountNumber: '01620-8910452',
+    accountNumber: '01620-989898',
     accountType: 'Personal',
     minDeposit: 100,
     maxDeposit: 100000,
@@ -212,9 +212,9 @@ export const DEFAULT_RESET_REQUESTS: PasswordResetRequest[] = [];
 
 export const DEFAULT_SETTINGS: PlatformSettings = {
   siteName: 'MICROJOBBOSS',
-  totalMembersCount: 14892,
-  totalDepositsVolume: 18452000,
-  totalWithdrawsVolume: 13920500,
+  totalMembersCount: 19892,
+  totalDepositsVolume: 19452000,
+  totalWithdrawsVolume: 18920500,
   referralBonusPerPlan: 50, // ৳50 direct commission
   telegramSupportUrl: 'https://t.me/microjobboss_official',
   whatsappSupportUrl: 'https://wa.me/8801700000000',
