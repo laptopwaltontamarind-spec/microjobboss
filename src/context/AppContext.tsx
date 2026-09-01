@@ -288,37 +288,54 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const map = new Map<string, User>();
         prev.forEach(u => map.set(u.id, u));
         cloudUsers.forEach(u => map.set(u.id, u));
-        return Array.from(map.values());
+        const merged = Array.from(map.values());
+        setStorage(STORAGE_KEYS.USERS, merged);
+        return merged;
       });
     });
 
     const unsubDeposits = subscribeToDeposits((cloudDeposits) => {
       setDeposits(cloudDeposits);
+      setStorage(STORAGE_KEYS.DEPOSITS, cloudDeposits);
     });
 
     const unsubWithdrawals = subscribeToWithdrawals((cloudWithdraws) => {
       setWithdraws(cloudWithdraws);
+      setStorage(STORAGE_KEYS.WITHDRAWS, cloudWithdraws);
     });
 
     const unsubInvestments = subscribeToInvestments((cloudInvestments) => {
       setInvestments(cloudInvestments);
+      setStorage(STORAGE_KEYS.INVESTMENTS, cloudInvestments);
     });
 
     const unsubAuditLogs = subscribeToAuditLogs((cloudLogs) => {
       setAuditLogs(cloudLogs);
+      setStorage(STORAGE_KEYS.AUDIT_LOGS, cloudLogs);
     });
 
     const unsubSupport = subscribeToSupport((cloudTickets) => {
       setSupportTickets(cloudTickets);
+      setStorage(STORAGE_KEYS.SUPPORT, cloudTickets);
     });
 
     const unsubResets = subscribeToResets((cloudResets) => {
       setResetRequests(cloudResets);
+      setStorage(STORAGE_KEYS.RESETS, cloudResets);
     });
 
     const unsubSettings = subscribeToSettings(
-      (cloudGateways) => setGateways(cloudGateways),
-      (cloudSettings) => setSettings(prev => ({ ...prev, ...cloudSettings }))
+      (cloudGateways) => {
+        setGateways(cloudGateways);
+        setStorage(STORAGE_KEYS.GATEWAYS, cloudGateways);
+      },
+      (cloudSettings) => {
+        setSettings(prev => {
+          const updated = { ...prev, ...cloudSettings };
+          setStorage(STORAGE_KEYS.SETTINGS, updated);
+          return updated;
+        });
+      }
     );
 
     const unsubTickers = subscribeToTickers((cloudTickers) => {
@@ -1019,13 +1036,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setUsers(prev => prev.map(u => {
       if (u.id === currentUser.id) {
-        return {
+        const updated: User = {
           ...u,
           name: name.trim() || u.name,
           email: email.trim().toLowerCase() || u.email,
           phone: phone.trim() || u.phone,
           password: newPassword && newPassword.trim() ? newPassword.trim() : u.password
         };
+        firestoreSaveUser(updated);
+        return updated;
       }
       return u;
     }));
@@ -1194,10 +1213,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Refund to wallet
       setUsers(prev => prev.map(u => {
         if (u.id === user.id) {
-          return {
+          const updated = {
             ...u,
             walletBalance: balanceAfter
           };
+          firestoreSaveUser(updated);
+          return updated;
         }
         return u;
       }));
@@ -1217,20 +1238,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         timestamp: new Date().toISOString()
       };
       setAuditLogs(prev => [audit, ...prev]);
+      firestoreSaveAuditLog(audit);
     }
 
-    setWithdraws(prev => prev.map(w => {
-      if (w.id === withdrawId) {
-        return {
-          ...w,
-          status: 'rejected',
-          rejectReason: reason || 'Incorrect account details or limit issue',
-          processedAt: new Date().toISOString(),
-          processedBy: currentAdmin?.memberCode || 'ADMIN'
-        };
-      }
-      return w;
-    }));
+    const updatedWth: WithdrawTransaction = {
+      ...wth,
+      status: 'rejected',
+      rejectReason: reason || 'Incorrect account details or limit issue',
+      processedAt: new Date().toISOString(),
+      processedBy: currentAdmin?.memberCode || 'ADMIN'
+    };
+    setWithdraws(prev => prev.map(w => (w.id === withdrawId ? updatedWth : w)));
+    firestoreSaveWithdraw(updatedWth);
 
     toast('Withdrawal rejected and balance refunded to user', 'info');
   };
