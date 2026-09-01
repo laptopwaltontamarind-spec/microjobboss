@@ -80,9 +80,9 @@ const MainLayout: React.FC = () => {
       {/* Real-time Live Payouts Ticker Bar */}
       <LiveTickerBar />
 
-      {/* View Switcher: User Portal vs Admin Portal */}
+      {/* View Switcher: User Portal vs Admin Portal (Strictly Admin only) */}
       <main className="flex-1">
-        {currentPortal === 'admin' ? (
+        {currentPortal === 'admin' && currentAdmin ? (
           <AdminPortal />
         ) : (
           currentUser ? <UserDashboard /> : <LandingPage />

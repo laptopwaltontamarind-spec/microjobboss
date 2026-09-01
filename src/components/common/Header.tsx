@@ -94,11 +94,13 @@ export const Header: React.FC = () => {
             </div>
           </button>
 
-          {/* Dedicated URL simulation badge */}
-          <div className="hidden lg:flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-slate-400 font-mono">
-            <span className="text-emerald-400">●</span>
-            <span>{currentPortal === 'user' ? 'microjobboss.com' : 'microjobboss.com.admin'}</span>
-          </div>
+          {/* Dedicated URL simulation badge (Only for Admin) */}
+          {currentAdmin && (
+            <div className="hidden lg:flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-slate-400 font-mono">
+              <span className="text-emerald-400">●</span>
+              <span>{currentPortal === 'user' ? 'microjobboss.com' : 'microjobboss.com.admin'}</span>
+            </div>
+          )}
         </div>
 
         {/* Portal Switcher & Action Controls */}
@@ -108,7 +110,7 @@ export const Header: React.FC = () => {
             <div className="bg-slate-900 border border-slate-800 p-0.5 rounded-xl flex items-center">
               <button
                 onClick={() => setCurrentPortal('user')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   currentPortal === 'user'
                     ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/25'
                     : 'text-slate-400 hover:text-slate-200'
@@ -119,7 +121,7 @@ export const Header: React.FC = () => {
               </button>
               <button
                 onClick={() => setCurrentPortal('admin')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all relative ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all relative cursor-pointer ${
                   currentPortal === 'admin'
                     ? 'bg-rose-600 text-white shadow-md shadow-rose-600/25'
                     : 'text-slate-400 hover:text-slate-200'
@@ -134,13 +136,30 @@ export const Header: React.FC = () => {
             </div>
           )}
 
-          {/* User Auth State & Actions */}
-          {currentPortal === 'user' ? (
+          {/* User Auth State & Actions - Admin badge ONLY when logged in as admin in admin portal */}
+          {currentAdmin && currentPortal === 'admin' ? (
+            <div className="flex items-center gap-2">
+              <div className="bg-rose-950/60 border border-rose-800/60 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <div className="text-right">
+                  <span className="text-xs font-bold text-rose-300 block">{currentAdmin.name}</span>
+                  <span className="text-[10px] text-rose-400 uppercase tracking-wider">{currentAdmin.role}</span>
+                </div>
+              </div>
+              <button
+                onClick={logoutAdmin}
+                className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-rose-400 cursor-pointer"
+                title="Logout Admin"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
             currentUser ? (
               <div className="relative">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 transition-colors"
+                  className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 transition-colors cursor-pointer"
                 >
                   <div className="flex flex-col text-right">
                     <span className="font-bold text-amber-400">৳{currentUser.walletBalance.toLocaleString()}</span>
@@ -166,7 +185,7 @@ export const Header: React.FC = () => {
                         setActiveUserTab('wallet');
                         setIsUserMenuOpen(false);
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 rounded-lg text-left"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 rounded-lg text-left cursor-pointer"
                     >
                       <Wallet className="w-4 h-4 text-emerald-400" />
                       <span>Deposit & Withdraw</span>
@@ -177,7 +196,7 @@ export const Header: React.FC = () => {
                         setActiveUserTab('referrals');
                         setIsUserMenuOpen(false);
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 rounded-lg text-left"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 rounded-lg text-left cursor-pointer"
                     >
                       <Sparkles className="w-4 h-4 text-amber-400" />
                       <span>Referral Link (৳50 Bonus)</span>
@@ -188,7 +207,7 @@ export const Header: React.FC = () => {
                         setActiveUserTab('profile');
                         setIsUserMenuOpen(false);
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 rounded-lg text-left"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 rounded-lg text-left cursor-pointer"
                     >
                       <UserIcon className="w-4 h-4 text-sky-400" />
                       <span>My Profile</span>
@@ -201,7 +220,7 @@ export const Header: React.FC = () => {
                         logoutUser();
                         setIsUserMenuOpen(false);
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-rose-400 hover:bg-rose-500/10 rounded-lg text-left font-semibold"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-rose-400 hover:bg-rose-500/10 rounded-lg text-left font-semibold cursor-pointer"
                     >
                       <LogOut className="w-4 h-4" />
                       <span>Logout</span>
@@ -216,7 +235,7 @@ export const Header: React.FC = () => {
                     setAuthModalMode('login');
                     setIsAuthModalOpen(true);
                   }}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
                   <LogIn className="w-3.5 h-3.5" />
                   <span>Login</span>
@@ -226,43 +245,12 @@ export const Header: React.FC = () => {
                     setAuthModalMode('register');
                     setIsAuthModalOpen(true);
                   }}
-                  className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 hover:from-amber-400 hover:to-amber-500 shadow-md shadow-amber-500/20 transition-all flex items-center gap-1.5"
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 hover:from-amber-400 hover:to-amber-500 shadow-md shadow-amber-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   <span>Register</span>
                 </button>
               </div>
-            )
-          ) : (
-            // Admin portal header badge
-            currentAdmin ? (
-              <div className="flex items-center gap-2">
-                <div className="bg-rose-950/60 border border-rose-800/60 px-3 py-1.5 rounded-xl flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <div className="text-right">
-                    <span className="text-xs font-bold text-rose-300 block">{currentAdmin.name}</span>
-                    <span className="text-[10px] text-rose-400 uppercase tracking-wider">{currentAdmin.role}</span>
-                  </div>
-                </div>
-                <button
-                  onClick={logoutAdmin}
-                  className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-rose-400"
-                  title="Logout Admin"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => {
-                  setAuthModalMode('admin_login');
-                  setIsAuthModalOpen(true);
-                }}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white flex items-center gap-1.5 shadow-md shadow-rose-600/30"
-              >
-                <Lock className="w-3.5 h-3.5" />
-                <span>Admin Login</span>
-              </button>
             )
           )}
         </div>

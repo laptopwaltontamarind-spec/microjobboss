@@ -419,6 +419,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     setCurrentAdminId(adminUser.id);
+    setCurrentPortal('admin');
     setIsAuthModalOpen(false);
     toast(`Authenticated as ${adminUser.role.toUpperCase()}: ${adminUser.name}`, 'success');
     return { success: true, message: 'Admin logged in' };
@@ -426,6 +427,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const logoutAdmin = () => {
     setCurrentAdminId(null);
+    setCurrentPortal('user');
     toast('Admin session ended', 'info');
   };
 
