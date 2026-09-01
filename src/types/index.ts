@@ -40,8 +40,8 @@ export interface User {
 export interface MiningPlan {
   id: string;
   name: string;
-  dailyRoiPercent: number; // 12%
-  minDeposit: number; // ৳100
+  dailyRoiPercent: number; // 8.5%
+  minDeposit: number; // ৳300
   maxDeposit: number; // ৳100,000
   durationDays: number; // 30
   badge: string;
@@ -54,8 +54,8 @@ export interface UserInvestment {
   userId: string;
   planName: string;
   investedAmount: number;
-  dailyRoiPercent: number; // 12%
-  dailyReturnAmount: number; // investedAmount * 0.12
+  dailyRoiPercent: number; // 8.5%
+  dailyReturnAmount: number; // investedAmount * 0.085
   totalExpectedReturn: number; // dailyReturnAmount * 30
   startDate: string;
   endDate: string;

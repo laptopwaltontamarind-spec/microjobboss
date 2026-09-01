@@ -41,7 +41,7 @@ export const LandingPage: React.FC = () => {
 
   // Interactive ROI Calculator State
   const [calcAmount, setCalcAmount] = useState<number>(2000);
-  const dailyReturn = Math.round(calcAmount * 0.12);
+  const dailyReturn = Math.round(calcAmount * 0.085);
   const totalReturn30Days = dailyReturn * 30;
   const netProfit30Days = totalReturn30Days - calcAmount;
 
@@ -61,7 +61,7 @@ export const LandingPage: React.FC = () => {
               <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-amber-500/10 border border-amber-500/30 px-3.5 py-1.5 rounded-full">
                 <Flame className="w-4 h-4 text-amber-400 animate-pulse" />
                 <span className="text-xs font-bold bg-gradient-to-r from-amber-400 to-rose-400 bg-clip-text text-transparent">
-                  12.00% Daily Mining Return • 30-Day Cycle
+                  8.50% Daily Mining Return • 30-Day Cycle
                 </span>
               </div>
 
@@ -73,7 +73,7 @@ export const LandingPage: React.FC = () => {
               </h1>
 
               <p className="text-slate-300 text-sm sm:text-base lg:text-lg max-w-2xl leading-relaxed">
-                Bangladesh’s premier automated micro-mining ecosystem. Deposit securely via <strong className="text-white">bKash, Nagad, Rocket, or mCash</strong>, receive 12% daily guaranteed profit directly into your wallet every 24 hours, and cash out instantly.
+                Bangladesh’s premier automated micro-mining ecosystem. Deposit securely via <strong className="text-white">bKash, Nagad, Rocket, or mCash</strong>, receive 8.5% daily guaranteed profit directly into your wallet every 24 hours, and cash out instantly.
               </p>
 
               {/* Action Buttons */}
@@ -97,7 +97,7 @@ export const LandingPage: React.FC = () => {
                       className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-sm rounded-xl shadow-xl shadow-amber-500/25 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 cursor-pointer"
                     >
                       <Zap className="w-4 h-4" />
-                      <span>Start Mining Now (12% Daily)</span>
+                      <span>Start Mining Now (8.5% Daily)</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
                     <button
@@ -142,11 +142,11 @@ export const LandingPage: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="font-bold text-sm text-slate-100">Live ROI Profit Calculator</h3>
-                      <p className="text-[11px] text-slate-400">Standard 12% / Day Active Node</p>
+                      <p className="text-[11px] text-slate-400">Standard 8.5% / Day Active Node</p>
                     </div>
                   </div>
                   <span className="px-2.5 py-1 rounded bg-emerald-500/15 text-emerald-400 font-mono font-bold text-xs border border-emerald-500/30">
-                    +12.00% / Day
+                    +8.50% / Day
                   </span>
                 </div>
 
@@ -292,7 +292,7 @@ export const LandingPage: React.FC = () => {
               High-Yield Packages
             </span>
             <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-100">
-              Standard 12% Daily Mining Packages
+              Standard 8.5% Daily Mining Packages
             </h2>
             <p className="text-slate-400 text-sm">
               All plans run on a 30-day smart cycle with instant daily payouts. At the end of 30 days, you can re-purchase any plan.
@@ -329,7 +329,7 @@ export const LandingPage: React.FC = () => {
                     <div className="bg-slate-950/80 p-4 rounded-xl border border-slate-800/80">
                       <div className="flex items-baseline justify-between">
                         <span className="text-xs text-slate-400">Daily Return</span>
-                        <span className="text-2xl font-extrabold text-amber-400 font-mono">12.00%</span>
+                        <span className="text-2xl font-extrabold text-amber-400 font-mono">8.50%</span>
                       </div>
                       <div className="flex items-baseline justify-between mt-2 pt-2 border-t border-slate-800/60 text-xs">
                         <span className="text-slate-400">Lock Duration</span>
@@ -516,7 +516,7 @@ export const LandingPage: React.FC = () => {
                 <span className="font-extrabold text-base text-slate-100">MICROJOBBOSS</span>
               </div>
               <p className="text-slate-400 text-xs max-w-md leading-relaxed">
-                MICROJOBBOSS is a high-performance 12% daily mining platform supporting bKash, Nagad, Rocket, and mCash. Verified multi-gateway audit trail with 24/7 dedicated support desk.
+                MICROJOBBOSS is a high-performance 8.5% daily mining platform supporting bKash, Nagad, Rocket, and mCash. Verified multi-gateway audit trail with 24/7 dedicated support desk.
               </p>
             </div>
 
@@ -530,7 +530,7 @@ export const LandingPage: React.FC = () => {
                 </li>
                 <li>
                   <button onClick={() => setActiveUserTab('plans')} className="hover:text-amber-400 transition-colors">
-                    Standard 12% Plan
+                    Standard 8.5% Plan
                   </button>
                 </li>
                 <li>

@@ -196,7 +196,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     Object.keys(stored).forEach(key => {
       upgraded[key] = {
         ...stored[key],
-        minDeposit: stored[key].minDeposit < 300 ? 300 : stored[key].minDeposit
+        minDeposit: stored[key].minDeposit < 300 ? 300 : stored[key].minDeposit,
+        minWithdraw: (stored[key].minWithdraw === 150 || !stored[key].minWithdraw) ? 300 : stored[key].minWithdraw,
+        maxWithdraw: (stored[key].maxWithdraw === 50000 || !stored[key].maxWithdraw) ? 25000 : stored[key].maxWithdraw,
+        withdrawFeePercent: (stored[key].withdrawFeePercent === 15.0 || stored[key].withdrawFeePercent === 15 || stored[key].withdrawFeePercent === undefined) ? 3.2 : stored[key].withdrawFeePercent
       };
     });
     return upgraded;
@@ -576,7 +579,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       isCredit: false,
       balanceBefore,
       balanceAfter,
-      description: `Locked ৳${amount.toLocaleString()} for 30 days @ 12% daily ROI`,
+      description: `Locked ৳${amount.toLocaleString()} for 30 days @ 8.5% daily ROI`,
       timestamp: now.toISOString()
     };
     setAuditLogs(prev => [purchaseAudit, ...prev]);
@@ -668,7 +671,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toast(`২৪ ঘণ্টা পূর্ণ হওয়ার আগে ক্লেইম করা সম্ভব নয়! পরবর্তী প্রফিট ক্লেইম করতে আরও ${timeStr} অপেক্ষা করুন।`, 'error');
         return { 
           success: false, 
-          message: `Claim locked! Next 12% mining profit can be claimed in ${timeStr}.` 
+          message: `Claim locked! Next 8.5% mining profit can be claimed in ${timeStr}.` 
         };
       }
     }
@@ -722,7 +725,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       isCredit: true,
       balanceBefore,
       balanceAfter,
-      description: `12% daily yield from ${inv.planName} (Day ${newClaimedDays} of 30, Invested: ৳${inv.investedAmount.toLocaleString()})`,
+      description: `8.5% daily yield from ${inv.planName} (Day ${newClaimedDays} of 30, Invested: ৳${inv.investedAmount.toLocaleString()})`,
       timestamp: new Date(now).toISOString()
     };
     setAuditLogs(prev => [audit, ...prev]);
@@ -731,9 +734,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (isFinished) {
       toast(`🎉 অভিনন্দন! ৩০ দিনের শেষ ক্লেইম সফল (৳${earned.toLocaleString()})! প্ল্যানের মেয়াদ পূর্ণ হয়েছে। পরবর্তী আয়ের জন্য নতুন প্ল্যান কিনুন।`, 'success');
     } else if (isFirstClaim) {
-      toast(`🎉 প্রথম দিনের ১২% মাইনিং প্রফিট (৳${earned.toLocaleString()}) ওয়ালেটে যুক্ত হয়েছে! পরবর্তী ক্লেইম ২৪ ঘণ্টা পর উন্মুক্ত হবে (${newClaimedDays}/30 দিন সম্পন্ন)।`, 'success');
+      toast(`🎉 প্রথম দিনের ৮.৫% মাইনিং প্রফিট (৳${earned.toLocaleString()}) ওয়ালেটে যুক্ত হয়েছে! পরবর্তী ক্লেইম ২৪ ঘণ্টা পর উন্মুক্ত হবে (${newClaimedDays}/30 দিন সম্পন্ন)।`, 'success');
     } else {
-      toast(`অভিনন্দন! ১২% প্রফিট ৳${earned.toLocaleString()} ওয়ালেটে যুক্ত হয়েছে (${newClaimedDays}/30 দিন সম্পন্ন)। পরবর্তী ক্লেইম ২৪ ঘণ্টা পর।`, 'success');
+      toast(`অভিনন্দন! ৮.৫% প্রফিট ৳${earned.toLocaleString()} ওয়ালেটে যুক্ত হয়েছে (${newClaimedDays}/30 দিন সম্পন্ন)। পরবর্তী ক্লেইম ২৪ ঘণ্টা পর।`, 'success');
     }
     return { success: true, message: 'Reward claimed', earned };
   };
@@ -792,8 +795,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const gwConfig = gateways[gateway];
-    const minWth = gwConfig?.minWithdraw || 150;
-    const maxWth = gwConfig?.maxWithdraw || 50000;
+    const minWth = gwConfig?.minWithdraw || 300;
+    const maxWth = gwConfig?.maxWithdraw || 25000;
 
     if (amount < minWth || amount > maxWth) {
       return { success: false, message: `উত্তোলনের পরিমাণ ৳${minWth.toLocaleString()} থেকে ৳${maxWth.toLocaleString()}-এর মধ্যে হতে হবে।` };
@@ -803,7 +806,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: false, message: `অপর্যাপ্ত ব্যালেন্স! আপনার বর্তমান ব্যালেন্স ৳${currentUser.walletBalance.toLocaleString()}` };
     }
 
-    const feePercent = gwConfig?.withdrawFeePercent ?? 15.0;
+    const feePercent = gwConfig?.withdrawFeePercent ?? 3.2;
     const fee = Math.round((amount * (feePercent / 100)) * 100) / 100;
     const netAmount = Math.round((amount - fee) * 100) / 100;
 

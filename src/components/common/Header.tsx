@@ -61,7 +61,7 @@ export const Header: React.FC = () => {
             <PhoneCall className="w-3.5 h-3.5" /> 24/7 Helpline
           </a>
           <span className="opacity-60">|</span>
-          <span className="text-[11px] bg-slate-950/20 px-2 py-0.5 rounded font-mono">12% ROI / Day</span>
+          <span className="text-[11px] bg-slate-950/20 px-2 py-0.5 rounded font-mono">8.5% ROI / Day</span>
         </div>
       </div>
 
@@ -90,7 +90,7 @@ export const Header: React.FC = () => {
                   PRO
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 hidden sm:block">12% Daily Mining & Multi-Gateway Platform</p>
+              <p className="text-[11px] text-slate-400 hidden sm:block">8.5% Daily Mining & Multi-Gateway Platform</p>
             </div>
           </button>
         </div>

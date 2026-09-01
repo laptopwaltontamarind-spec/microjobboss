@@ -286,7 +286,7 @@ export const UserDashboard: React.FC = () => {
                   }`}
                 >
                   <Layers className="w-4 h-4" />
-                  <span>Investment Plan (১২% প্ল্যান)</span>
+                  <span>Investment Plan (৮.৫% প্ল্যান)</span>
                 </button>
               </div>
             </div>
@@ -386,7 +386,7 @@ export const UserDashboard: React.FC = () => {
                       </span>
                       <div>
                         <h2 className="text-xl font-bold text-slate-100">Live Mining Operation Node</h2>
-                        <p className="text-xs text-slate-400">Guaranteed 12.00% Daily Yield Engine</p>
+                        <p className="text-xs text-slate-400">Guaranteed 8.50% Daily Yield Engine</p>
                       </div>
                     </div>
 
@@ -444,7 +444,7 @@ export const UserDashboard: React.FC = () => {
                           className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-1.5 cursor-pointer transition-all animate-pulse"
                         >
                           <Coins className="w-4 h-4" />
-                          <span>Claim 12% Mining Profit (৳{primaryActiveInv.dailyReturnAmount.toLocaleString()})</span>
+                          <span>Claim 8.5% Mining Profit (৳{primaryActiveInv.dailyReturnAmount.toLocaleString()})</span>
                         </button>
                       ) : (
                         <button
@@ -461,7 +461,7 @@ export const UserDashboard: React.FC = () => {
                         className="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-amber-500/20 flex items-center justify-center gap-1.5 cursor-pointer transition-all"
                       >
                         <Zap className="w-4 h-4" />
-                        <span>Buy 12% Plan to Start Mining</span>
+                        <span>Buy 8.5% Plan to Start Mining</span>
                       </button>
                     )}
                   </div>
@@ -492,7 +492,7 @@ export const UserDashboard: React.FC = () => {
                       onClick={() => setActiveUserTab('plans')}
                       className="px-4 py-2 bg-amber-500 text-slate-950 font-bold text-xs rounded-lg hover:bg-amber-400"
                     >
-                      Browse 12% Mining Plans
+                      Browse 8.5% Mining Plans
                     </button>
                   </div>
                 ) : (
@@ -522,7 +522,7 @@ export const UserDashboard: React.FC = () => {
                               <span className="font-bold text-slate-200">৳{inv.investedAmount.toLocaleString()}</span>
                             </div>
                             <div>
-                              <span className="text-[10px] text-slate-500 block">Daily (12%)</span>
+                              <span className="text-[10px] text-slate-500 block">Daily (8.5%)</span>
                               <span className="font-bold text-emerald-400">+৳{inv.dailyReturnAmount.toLocaleString()}</span>
                             </div>
                             <div>
@@ -587,11 +587,11 @@ export const UserDashboard: React.FC = () => {
               <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-xl font-bold text-slate-100">Standard 12.00% Daily Mining Plans</h2>
+                    <h2 className="text-xl font-bold text-slate-100">Standard 8.50% Daily Mining Plans</h2>
                     <p className="text-xs text-slate-400">Lock period: 30 days. After 30 days, principal matures and you can re-purchase any plan.</p>
                   </div>
                   <span className="bg-amber-500/10 text-amber-400 border border-amber-500/30 px-3 py-1 rounded-full text-xs font-bold font-mono">
-                    Daily 12% Auto Payout
+                    Daily 8.5% Auto Payout
                   </span>
                 </div>
 
@@ -617,7 +617,7 @@ export const UserDashboard: React.FC = () => {
                       <div className="bg-slate-900 p-3 rounded-xl font-mono space-y-1 text-xs">
                         <div className="flex justify-between text-slate-400">
                           <span>Daily ROI:</span>
-                          <span className="text-amber-400 font-bold">12.00% / Day</span>
+                          <span className="text-amber-400 font-bold">8.50% / Day</span>
                         </div>
                         <div className="flex justify-between text-slate-400">
                           <span>Lock Duration:</span>
@@ -665,11 +665,11 @@ export const UserDashboard: React.FC = () => {
                       </div>
                       <div className="flex justify-between text-slate-400">
                         <span>Calculated Daily Profit:</span>
-                        <span className="font-bold text-emerald-400">+৳{Math.round(planBuyAmount * 0.12).toLocaleString()} / day</span>
+                        <span className="font-bold text-emerald-400">+৳{Math.round(planBuyAmount * 0.085).toLocaleString()} / day</span>
                       </div>
                       <div className="flex justify-between text-slate-400">
                         <span>30-Day Total Yield:</span>
-                        <span className="font-bold text-amber-400">৳{(Math.round(planBuyAmount * 0.12) * 30).toLocaleString()}</span>
+                        <span className="font-bold text-amber-400">৳{(Math.round(planBuyAmount * 0.085) * 30).toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
@@ -680,7 +680,7 @@ export const UserDashboard: React.FC = () => {
                       className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-bold text-sm rounded-xl shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer transition-all"
                     >
                       <Zap className="w-4 h-4" />
-                      <span>Lock ৳{planBuyAmount.toLocaleString()} & Start 12% Daily Mining</span>
+                      <span>Lock ৳{planBuyAmount.toLocaleString()} & Start 8.5% Daily Mining</span>
                     </button>
                     {currentUser.walletBalance < planBuyAmount && (
                       <button
@@ -862,12 +862,12 @@ export const UserDashboard: React.FC = () => {
                   <form onSubmit={handleWithdrawSubmit} className="space-y-3.5">
                     <div>
                       <label className="block text-xs font-semibold text-slate-300 mb-1">
-                        Withdraw Amount (Min: ৳150 - Max: ৳50,000)
+                        Withdraw Amount (Min: ৳300 - Max: ৳25,000)
                       </label>
                       <input
                         type="number"
-                        min={150}
-                        max={50000}
+                        min={gateways[selectedWithdrawGateway]?.minWithdraw || 300}
+                        max={gateways[selectedWithdrawGateway]?.maxWithdraw || 25000}
                         required
                         value={withdrawAmount}
                         onChange={(e) => setWithdrawAmount(Number(e.target.value))}
@@ -896,12 +896,12 @@ export const UserDashboard: React.FC = () => {
                         <span>৳{withdrawAmount.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between text-slate-400">
-                        <span>Withdraw Charge (15%):</span>
-                        <span className="text-rose-400">-৳{(withdrawAmount * 0.15).toFixed(2)}</span>
+                        <span>Withdraw Charge ({gateways[selectedWithdrawGateway]?.withdrawFeePercent ?? 3.2}%):</span>
+                        <span className="text-rose-400">-৳{(withdrawAmount * ((gateways[selectedWithdrawGateway]?.withdrawFeePercent ?? 3.2) / 100)).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-slate-200 font-bold pt-1 border-t border-slate-800">
                         <span>You will receive:</span>
-                        <span className="text-emerald-400">৳{(withdrawAmount * 0.85).toFixed(2)}</span>
+                        <span className="text-emerald-400">৳{(withdrawAmount * (1 - (gateways[selectedWithdrawGateway]?.withdrawFeePercent ?? 3.2) / 100)).toFixed(2)}</span>
                       </div>
                     </div>
 
