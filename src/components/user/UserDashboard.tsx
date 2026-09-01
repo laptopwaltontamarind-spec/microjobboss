@@ -338,7 +338,7 @@ export const UserDashboard: React.FC = () => {
                   }`}
                 >
                   <Share2 className="w-4 h-4" />
-                  <span>Referlink & MLM (৳৫০ বোনাস)</span>
+                  <span>Referlink & MLM (৳{settings.referralBonusPerPlan === 40 ? '৪০' : settings.referralBonusPerPlan} বোনাস)</span>
                 </button>
 
                 <button
