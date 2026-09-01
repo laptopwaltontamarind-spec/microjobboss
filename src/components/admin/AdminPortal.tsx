@@ -317,16 +317,8 @@ export const AdminPortal: React.FC = () => {
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
-              onClick={() => setCurrentPortal('user')}
-              className="flex-1 sm:flex-none px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
-              title="Switch to User Portal view"
-            >
-              <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
-              <span>User Site</span>
-            </button>
-            <button
               onClick={logoutAdmin}
-              className="flex-1 sm:flex-none px-3 py-2 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-600/40 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+              className="w-full sm:w-auto px-4 py-2 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-600/40 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-sm"
               title="Logout Admin Session"
             >
               <LogOut className="w-3.5 h-3.5" />

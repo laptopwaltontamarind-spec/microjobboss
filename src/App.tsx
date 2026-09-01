@@ -76,11 +76,11 @@ const MainLayout: React.FC = () => {
         </div>
       )}
 
-      {/* Main Global Header */}
-      <Header />
+      {/* Main Global Header (Hidden in Admin Portal) */}
+      {!(currentPortal === 'admin' && currentAdmin) && <Header />}
 
-      {/* Real-time Live Payouts Ticker Bar */}
-      {!settings.isMaintenanceMode && <LiveTickerBar />}
+      {/* Real-time Live Payouts Ticker Bar (Hidden in Admin Portal & Maintenance) */}
+      {!(currentPortal === 'admin' && currentAdmin) && !settings.isMaintenanceMode && <LiveTickerBar />}
 
       {/* View Switcher: Maintenance Mode vs User Portal vs Admin Portal (Strictly Admin only) */}
       <main className="flex-1">
