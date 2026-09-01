@@ -80,6 +80,7 @@ interface AppContextType {
   adjustMemberWallet: (userId: string, deltaAmount: number, reason: string) => void;
   banMember: (userId: string, reason: string) => void;
   unbanMember: (userId: string) => void;
+  deleteMember: (userId: string) => void;
   editMemberDetails: (userId: string, updates: Partial<User>) => void;
   updateGatewayConfig: (gatewayKey: string, config: Partial<GatewayConfigItem>) => void;
   replySupportTicket: (ticketId: string, reply: string, status: SupportTicket['status']) => void;
@@ -252,42 +253,80 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => clearInterval(timer);
   }, []);
 
+  // Helper to normalize phone numbers (extracts last 10 digits to match +88017..., 017..., 88017..., etc.)
+  const normalizePhone = (p: string): string => {
+    const digits = p.replace(/\D/g, '');
+    return digits.length >= 10 ? digits.slice(-10) : digits;
+  };
+
   // Auth Operations
   const loginUser = (identifier: string, pass: string) => {
-    const trimmed = identifier.trim().toLowerCase();
-    const user = users.find(u => 
-      (u.phone === identifier.trim() || 
-       u.email.toLowerCase() === trimmed || 
-       u.memberCode.toLowerCase() === trimmed) && 
-      u.password === pass
-    );
+    const rawId = identifier.trim();
+    const cleanIdLower = rawId.toLowerCase();
+    const cleanIdPhone = normalizePhone(rawId);
+    const cleanPass = pass.trim();
+
+    const user = users.find(u => {
+      // Check identifier matches phone, email, or memberCode
+      const uPhoneClean = normalizePhone(u.phone);
+      const isPhoneMatch = cleanIdPhone.length >= 8 && uPhoneClean === cleanIdPhone;
+      const isEmailMatch = u.email.toLowerCase() === cleanIdLower;
+      const isMemberCodeMatch = u.memberCode.toLowerCase() === cleanIdLower;
+
+      if (!isPhoneMatch && !isEmailMatch && !isMemberCodeMatch) {
+        return false;
+      }
+
+      // Check password: allow exact, trimmed, or case-insensitive if alphanumeric
+      const isPassMatch = u.password === pass || 
+                          u.password.trim() === cleanPass ||
+                          u.password.toLowerCase() === cleanPass.toLowerCase();
+
+      return isPassMatch;
+    });
 
     if (!user) {
-      return { success: false, message: 'Invalid phone/email/member ID or password.' };
+      return { success: false, message: 'ভুল মোবাইল নাম্বার/ইমেইল অথবা পাসওয়ার্ড! সঠিক তথ্য দিন।' };
     }
 
     if (user.isBanned) {
       return { 
         success: false, 
-        message: `Your account has been BANNED by Admin. Reason: ${user.banReason || 'Policy violation'}. Contact support.` 
+        message: `আপনার একাউন্ট ব্যান করা হয়েছে। কারণ: ${user.banReason || 'পলিসি লঙ্ঘন'}। সাপোর্টে যোগাযোগ করুন।` 
       };
     }
 
     setCurrentUserId(user.id);
+    setStorage(STORAGE_KEYS.CURRENT_USER_ID, user.id);
     setIsAuthModalOpen(false);
-    toast(`Welcome back, ${user.name}!`, 'success');
+    toast(`স্বাগতম, ${user.name}! সফলভাবে লগইন হয়েছে।`, 'success');
     return { success: true, message: 'Login successful' };
   };
 
   const registerUser = (name: string, phone: string, email: string, pass: string, refCode?: string) => {
-    if (!name.trim() || !phone.trim() || !email.trim() || !pass.trim()) {
-      return { success: false, message: 'Please fill in all registration fields.' };
+    const cleanName = name.trim();
+    const rawPhone = phone.trim();
+    const cleanPhoneDigits = normalizePhone(rawPhone);
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPass = pass.trim();
+
+    if (!cleanName || !rawPhone || !cleanEmail || !cleanPass) {
+      return { success: false, message: 'সবগুলো ঘর সঠিকভাবে পূরণ করুন।' };
+    }
+
+    if (rawPhone.replace(/\D/g, '').length < 10) {
+      return { success: false, message: 'সঠিক ১১ ডিজিটের মোবাইল নাম্বার দিন (যেমন: 017XXXXXXXX)।' };
     }
 
     // Check duplicate phone or email
-    const exists = users.some(u => u.phone === phone.trim() || u.email.toLowerCase() === email.trim().toLowerCase());
+    const exists = users.some(u => {
+      const uPhoneClean = normalizePhone(u.phone);
+      return (cleanPhoneDigits.length >= 8 && uPhoneClean === cleanPhoneDigits) || 
+             u.email.toLowerCase() === cleanEmail;
+    });
+
     if (exists) {
-      return { success: false, message: 'A user with this phone number or email already exists.' };
+      return { success: false, message: 'এই মোবাইল নাম্বার বা ইমেইল দিয়ে ইতিমধ্যে একাউন্ট খোলা হয়েছে।' };
     }
 
     // Generate unique member code (e.g. micr879F70)
@@ -298,19 +337,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Verify referrer
     let validReferrer: User | undefined;
     if (refCode && refCode.trim()) {
+      const cleanRef = refCode.trim().toLowerCase();
       validReferrer = users.find(u => 
-        u.referralCode.toLowerCase() === refCode.trim().toLowerCase() ||
-        u.memberCode.toLowerCase() === refCode.trim().toLowerCase()
+        u.referralCode.toLowerCase() === cleanRef ||
+        u.memberCode.toLowerCase() === cleanRef ||
+        normalizePhone(u.phone) === normalizePhone(cleanRef)
       );
     }
 
     const newUser: User = {
       id: 'user_' + Date.now(),
       memberCode,
-      name: name.trim(),
-      phone: phone.trim(),
-      email: email.trim().toLowerCase(),
-      password: pass,
+      name: cleanName,
+      phone: rawPhone,
+      email: cleanEmail,
+      password: cleanPass,
       walletBalance: 0,
       totalDeposited: 0,
       totalWithdrawn: 0,
@@ -324,25 +365,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createdAt: new Date().toISOString()
     };
 
-    setUsers(prev => [newUser, ...prev]);
+    let updatedUsers = [newUser, ...users];
 
     // If referred, update referrer's count
     if (validReferrer) {
-      setUsers(prev => prev.map(u => {
+      updatedUsers = updatedUsers.map(u => {
         if (u.id === validReferrer?.id) {
           return { ...u, referralCount: u.referralCount + 1 };
         }
         return u;
-      }));
+      });
     }
 
+    setUsers(updatedUsers);
+    setStorage(STORAGE_KEYS.USERS, updatedUsers);
+
     // Update settings total members count
-    setSettings(prev => ({ ...prev, totalMembersCount: prev.totalMembersCount + 1 }));
+    setSettings(prev => {
+      const updated = { ...prev, totalMembersCount: prev.totalMembersCount + 1 };
+      setStorage(STORAGE_KEYS.SETTINGS, updated);
+      return updated;
+    });
 
     setCurrentUserId(newUser.id);
+    setStorage(STORAGE_KEYS.CURRENT_USER_ID, newUser.id);
     setIsAuthModalOpen(false);
     confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
-    toast(`Registration successful! Your Member ID is ${memberCode}`, 'success');
+    toast(`অভিনন্দন! একাউন্ট সফল হয়েছে। আপনার মেম্বার আইডি: ${memberCode}`, 'success');
     return { success: true, message: 'Account created successfully' };
   };
 
@@ -436,7 +485,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const now = new Date();
     const endDate = new Date(now.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
 
-    const nextClaimDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const nextClaimDate = now; // Ready immediately for 1st day reward right after purchase!
 
     const newInvestment: UserInvestment = {
       id: 'inv_' + Date.now(),
@@ -448,9 +497,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       totalExpectedReturn,
       startDate: now.toISOString(),
       endDate: endDate.toISOString(),
-      lastClaimDate: now.toISOString(),
+      lastClaimDate: '',
       nextClaimDate: nextClaimDate.toISOString(),
       totalClaimed: 0,
+      claimedDaysCount: 0,
       daysRemaining: plan.durationDays,
       status: 'active'
     };
@@ -525,55 +575,65 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: true, message: 'Plan purchased successfully' };
   };
 
-  // Claim 24-hour mining reward (STRICT 24-HOUR ENFORCEMENT)
+  // Claim 24-hour mining reward (1st claim immediate, subsequent claims 24h, max 30 days)
   const claimMiningReward = (investmentId: string) => {
     if (!currentUser) return { success: false, message: 'Not logged in' };
 
     const inv = investments.find(i => i.id === investmentId && i.userId === currentUser.id);
     if (!inv || inv.status !== 'active') {
-      return { success: false, message: 'Active investment not found.' };
+      return { success: false, message: 'সক্রিয় মাইনিং চুক্তি পাওয়া যায়নি অথবা মেয়াদ শেষ হয়েছে।' };
     }
 
-    if (inv.daysRemaining <= 0 || inv.totalClaimed >= inv.totalExpectedReturn) {
-      return { success: false, message: 'This 30-day mining contract has already finished.' };
+    const currentClaimCount = inv.claimedDaysCount ?? (30 - inv.daysRemaining);
+
+    if (inv.daysRemaining <= 0 || currentClaimCount >= 30 || inv.totalClaimed >= inv.totalExpectedReturn) {
+      // Mark as completed/expired
+      setInvestments(prev => prev.map(i => i.id === investmentId ? { ...i, status: 'completed', daysRemaining: 0 } : i));
+      toast('এই ৩০ দিনের মাইনিং প্ল্যানের মেয়াদ সমাপ্ত হয়েছে। নতুন প্ল্যান কিনুন।', 'info');
+      return { success: false, message: 'This 30-day mining contract has already completed. Please buy a new plan.' };
     }
 
     const now = Date.now();
-    
-    // Strict 24h verification: nextClaimDate or (lastClaimDate + 24 hours)
-    let nextClaimTimestamp = inv.nextClaimDate ? new Date(inv.nextClaimDate).getTime() : 0;
-    if (!nextClaimTimestamp || isNaN(nextClaimTimestamp)) {
-      const lastClaimTime = inv.lastClaimDate ? new Date(inv.lastClaimDate).getTime() : new Date(inv.startDate).getTime();
-      nextClaimTimestamp = lastClaimTime + 24 * 60 * 60 * 1000;
-    }
+    const isFirstClaim = currentClaimCount === 0 || !inv.lastClaimDate;
 
-    if (now < nextClaimTimestamp) {
-      const remainingMs = nextClaimTimestamp - now;
-      const hours = Math.floor(remainingMs / (1000 * 60 * 60));
-      const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((remainingMs % (1000 * 60)) / 1000);
-      
-      const timeStr = `${hours}h ${minutes}m ${seconds}s`;
-      toast(`২৪ ঘণ্টা পূর্ণ হওয়ার আগে ক্লেইম করা সম্ভব নয়! পরবর্তী প্রফিট ক্লেইম করতে আরও ${timeStr} অপেক্ষা করুন।`, 'error');
-      return { 
-        success: false, 
-        message: `Claim locked! Next 12% mining profit can be claimed in ${timeStr}.` 
-      };
+    // Strict 24h verification for 2nd day onward
+    if (!isFirstClaim) {
+      let nextClaimTimestamp = inv.nextClaimDate ? new Date(inv.nextClaimDate).getTime() : 0;
+      if (!nextClaimTimestamp || isNaN(nextClaimTimestamp)) {
+        const lastClaimTime = inv.lastClaimDate ? new Date(inv.lastClaimDate).getTime() : new Date(inv.startDate).getTime();
+        nextClaimTimestamp = lastClaimTime + 24 * 60 * 60 * 1000;
+      }
+
+      if (now < nextClaimTimestamp) {
+        const remainingMs = nextClaimTimestamp - now;
+        const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+        const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((remainingMs % (1000 * 60)) / 1000);
+        
+        const timeStr = `${hours} ঘণ্টা ${minutes} মিনিট ${seconds} সেকেন্ড`;
+        toast(`২৪ ঘণ্টা পূর্ণ হওয়ার আগে ক্লেইম করা সম্ভব নয়! পরবর্তী প্রফিট ক্লেইম করতে আরও ${timeStr} অপেক্ষা করুন।`, 'error');
+        return { 
+          success: false, 
+          message: `Claim locked! Next 12% mining profit can be claimed in ${timeStr}.` 
+        };
+      }
     }
 
     const earned = inv.dailyReturnAmount;
     const nextCycleTime = new Date(now + 24 * 60 * 60 * 1000).toISOString();
+    const newClaimedDays = currentClaimCount + 1;
+    const newDaysRemaining = Math.max(0, 30 - newClaimedDays);
+    const newTotalClaimed = inv.totalClaimed + earned;
+    const isFinished = newClaimedDays >= 30 || newDaysRemaining === 0;
 
-    // Update investment: subtract 1 day, add earned amount, advance cooldown by 24h
+    // Update investment: advance claim count, subtract 1 day, add earned amount, set 24h cooldown
     setInvestments(prev => prev.map(i => {
       if (i.id === investmentId) {
-        const newTotalClaimed = i.totalClaimed + earned;
-        const newDaysRemaining = Math.max(0, i.daysRemaining - 1);
-        const isFinished = newDaysRemaining === 0 || newTotalClaimed >= i.totalExpectedReturn;
         return {
           ...i,
           lastClaimDate: new Date(now).toISOString(),
           nextClaimDate: nextCycleTime,
+          claimedDaysCount: newClaimedDays,
           totalClaimed: newTotalClaimed,
           daysRemaining: newDaysRemaining,
           status: isFinished ? 'completed' : 'active'
@@ -603,18 +663,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       userId: currentUser.id,
       memberCode: currentUser.memberCode,
       type: 'mining_reward',
-      title: 'Daily Mining ROI Claimed (12%)',
+      title: `Daily Mining ROI Claimed (Day ${newClaimedDays}/30)`,
       amount: earned,
       isCredit: true,
       balanceBefore,
       balanceAfter,
-      description: `24-Hour yield from ${inv.planName} (Invested: ৳${inv.investedAmount.toLocaleString()})`,
+      description: `12% daily yield from ${inv.planName} (Day ${newClaimedDays} of 30, Invested: ৳${inv.investedAmount.toLocaleString()})`,
       timestamp: new Date(now).toISOString()
     };
     setAuditLogs(prev => [audit, ...prev]);
 
-    confetti({ particleCount: 50, spread: 60 });
-    toast(`অভিনন্দন! ৳${earned.toLocaleString()} (১২% প্রফিট) আপনার ওয়ালেটে যুক্ত হয়েছে। পরবর্তী ক্লেইম ২৪ ঘণ্টা পর।`, 'success');
+    confetti({ particleCount: 60, spread: 70 });
+    if (isFinished) {
+      toast(`🎉 অভিনন্দন! ৩০ দিনের শেষ ক্লেইম সফল (৳${earned.toLocaleString()})! প্ল্যানের মেয়াদ পূর্ণ হয়েছে। পরবর্তী আয়ের জন্য নতুন প্ল্যান কিনুন।`, 'success');
+    } else if (isFirstClaim) {
+      toast(`🎉 প্রথম দিনের ১২% মাইনিং প্রফিট (৳${earned.toLocaleString()}) ওয়ালেটে যুক্ত হয়েছে! পরবর্তী ক্লেইম ২৪ ঘণ্টা পর উন্মুক্ত হবে (${newClaimedDays}/30 দিন সম্পন্ন)।`, 'success');
+    } else {
+      toast(`অভিনন্দন! ১২% প্রফিট ৳${earned.toLocaleString()} ওয়ালেটে যুক্ত হয়েছে (${newClaimedDays}/30 দিন সম্পন্ন)। পরবর্তী ক্লেইম ২৪ ঘণ্টা পর।`, 'success');
+    }
     return { success: true, message: 'Reward claimed', earned };
   };
 
@@ -1046,6 +1112,48 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     toast('Member has been UNBANNED and restored to active state', 'success');
   };
 
+  // Admin: Delete Member permanently
+  const deleteMember = (userId: string) => {
+    const userToDelete = users.find(u => u.id === userId);
+    if (!userToDelete) return;
+
+    if (userToDelete.role === 'admin' || userToDelete.email.toLowerCase() === 'adminshykot@gmail.com') {
+      toast('Super Admin অ্যাকাউন্ট ডিলিট করা যাবে না!', 'error');
+      return;
+    }
+
+    const updatedUsers = users.filter(u => u.id !== userId);
+    const updatedInvestments = investments.filter(i => i.userId !== userId);
+    const updatedDeposits = deposits.filter(d => d.userId !== userId);
+    const updatedWithdraws = withdraws.filter(w => w.userId !== userId);
+    const updatedAuditLogs = auditLogs.filter(a => a.userId !== userId);
+    const updatedTickets = supportTickets.filter(s => s.userId !== userId);
+    const updatedResets = resetRequests.filter(r => r.userId !== userId);
+
+    setUsers(updatedUsers);
+    setInvestments(updatedInvestments);
+    setDeposits(updatedDeposits);
+    setWithdraws(updatedWithdraws);
+    setAuditLogs(updatedAuditLogs);
+    setSupportTickets(updatedTickets);
+    setResetRequests(updatedResets);
+
+    setStorage(STORAGE_KEYS.USERS, updatedUsers);
+    setStorage(STORAGE_KEYS.INVESTMENTS, updatedInvestments);
+    setStorage(STORAGE_KEYS.DEPOSITS, updatedDeposits);
+    setStorage(STORAGE_KEYS.WITHDRAWS, updatedWithdraws);
+    setStorage(STORAGE_KEYS.AUDIT_LOGS, updatedAuditLogs);
+    setStorage(STORAGE_KEYS.SUPPORT, updatedTickets);
+    setStorage(STORAGE_KEYS.RESETS, updatedResets);
+
+    if (currentUserId === userId) {
+      setCurrentUserId(null);
+      setStorage(STORAGE_KEYS.CURRENT_USER_ID, null);
+    }
+
+    toast(`সদস্য ${userToDelete.name} (${userToDelete.memberCode}) এর যাবতীয় ডেটা স্থায়ীভাবে ডিলিট করা হয়েছে।`, 'success');
+  };
+
   // Admin: Edit Member info
   const editMemberDetails = (userId: string, updates: Partial<User>) => {
     setUsers(prev => prev.map(u => {
@@ -1253,6 +1361,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         adjustMemberWallet,
         banMember,
         unbanMember,
+        deleteMember,
         editMemberDetails,
         updateGatewayConfig,
         replySupportTicket,

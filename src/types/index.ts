@@ -62,7 +62,8 @@ export interface UserInvestment {
   nextClaimDate?: string; // ISO string when next claim will be eligible (24h cooldown)
   totalClaimed: number;
   daysRemaining: number;
-  status: 'active' | 'completed';
+  claimedDaysCount?: number; // Count of claims done (up to 30)
+  status: 'active' | 'completed' | 'expired';
 }
 
 export interface DepositTransaction {

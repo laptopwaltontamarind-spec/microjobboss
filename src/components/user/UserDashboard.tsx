@@ -101,8 +101,38 @@ export const UserDashboard: React.FC = () => {
   const totalActiveCapital = activeInvestments.reduce((acc, curr) => acc + curr.investedAmount, 0);
   const totalDailyReturn = activeInvestments.reduce((acc, curr) => acc + curr.dailyReturnAmount, 0);
 
-  // Helper to calculate exact 24-hour cooldown for any investment
+  // Helper to calculate exact 24-hour cooldown for any investment (1st claim immediate, 24h for rest, 30-day maximum)
   const getInvestmentCooldown = (inv: typeof userInvestments[0]) => {
+    const currentClaimed = inv.claimedDaysCount ?? (30 - inv.daysRemaining);
+    const isCompleted = inv.status !== 'active' || inv.daysRemaining <= 0 || currentClaimed >= 30;
+    
+    if (isCompleted) {
+      return {
+        remainingMs: 0,
+        isReady: false,
+        isCompleted: true,
+        isFirstClaim: false,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+        formatted: '00:00:00'
+      };
+    }
+
+    const isFirstClaim = !inv.lastClaimDate || currentClaimed === 0;
+    if (isFirstClaim) {
+      return {
+        remainingMs: 0,
+        isReady: true,
+        isCompleted: false,
+        isFirstClaim: true,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+        formatted: '00:00:00'
+      };
+    }
+
     let nextClaimTimestamp = inv.nextClaimDate ? new Date(inv.nextClaimDate).getTime() : 0;
     if (!nextClaimTimestamp || isNaN(nextClaimTimestamp)) {
       const lastClaimTime = inv.lastClaimDate ? new Date(inv.lastClaimDate).getTime() : new Date(inv.startDate).getTime();
@@ -118,6 +148,8 @@ export const UserDashboard: React.FC = () => {
     return {
       remainingMs,
       isReady,
+      isCompleted: false,
+      isFirstClaim: false,
       hours,
       minutes,
       seconds,
@@ -515,14 +547,14 @@ export const UserDashboard: React.FC = () => {
 
                           <div className="flex justify-between items-center text-[11px] text-slate-400 pt-1 border-t border-slate-900">
                             <span>Claimed: ৳{inv.totalClaimed.toLocaleString()} / ৳{inv.totalExpectedReturn.toLocaleString()}</span>
-                            {inv.status === 'active' ? (
+                            {inv.status === 'active' && inv.daysRemaining > 0 ? (
                               cooldown.isReady ? (
                                 <button
                                   onClick={() => claimMiningReward(inv.id)}
-                                  className="px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 text-slate-950 font-bold text-xs rounded-lg shadow-md shadow-emerald-500/20 flex items-center gap-1 cursor-pointer transition-all"
+                                  className="px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 text-slate-950 font-bold text-xs rounded-lg shadow-md shadow-emerald-500/20 flex items-center gap-1 cursor-pointer transition-all animate-pulse"
                                 >
                                   <Coins className="w-3.5 h-3.5" />
-                                  <span>Claim ৳{inv.dailyReturnAmount.toLocaleString()}</span>
+                                  <span>{cooldown.isFirstClaim ? 'Claim Day 1 (১ম দিন)' : `Claim Day ${completedDays + 1}`} (৳{inv.dailyReturnAmount.toLocaleString()})</span>
                                 </button>
                               ) : (
                                 <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-900 border border-slate-800 rounded-lg text-slate-400 font-mono text-[10px]">
@@ -531,9 +563,13 @@ export const UserDashboard: React.FC = () => {
                                 </div>
                               )
                             ) : (
-                              <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-slate-500" /> Completed
-                              </span>
+                              <button
+                                onClick={() => setActiveUserTab('plans')}
+                                className="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] rounded-lg flex items-center gap-1 cursor-pointer transition-all"
+                              >
+                                <Zap className="w-3 h-3" />
+                                <span>Buy New Plan (৩০ দিন পূর্ণ)</span>
+                              </button>
                             )}
                           </div>
                         </div>

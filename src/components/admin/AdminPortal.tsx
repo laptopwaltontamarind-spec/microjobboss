@@ -55,6 +55,7 @@ export const AdminPortal: React.FC = () => {
     adjustMemberWallet,
     banMember,
     unbanMember,
+    deleteMember,
     editMemberDetails,
     updateGatewayConfig,
     replySupportTicket,
@@ -73,6 +74,7 @@ export const AdminPortal: React.FC = () => {
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMember, setSelectedMember] = useState<User | null>(null);
+  const [memberToDelete, setMemberToDelete] = useState<User | null>(null);
 
   // Wallet adjustment modal state
   const [walletDeltaAmount, setWalletDeltaAmount] = useState<number>(500);
@@ -534,12 +536,21 @@ export const AdminPortal: React.FC = () => {
                       </span>
                     </td>
                     <td className="py-3 px-3 text-right">
-                      <button
-                        onClick={() => openMemberDetail(user)}
-                        className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-semibold rounded-lg border border-slate-700 cursor-pointer"
-                      >
-                        Manage & Edit
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => openMemberDetail(user)}
+                          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-semibold rounded-lg border border-slate-700 cursor-pointer"
+                        >
+                          Manage & Edit
+                        </button>
+                        <button
+                          onClick={() => setMemberToDelete(user)}
+                          title="Delete Member"
+                          className="p-1 bg-red-950/60 hover:bg-red-900 text-red-400 border border-red-800/60 rounded-lg cursor-pointer transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -1140,13 +1151,27 @@ export const AdminPortal: React.FC = () => {
                 />
               </div>
 
-              <div className="flex justify-between items-center pt-2">
-                <button
-                  type="submit"
-                  className="py-2 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-lg"
-                >
-                  Save Member Changes
-                </button>
+              <div className="flex flex-wrap justify-between items-center gap-2 pt-2 border-t border-slate-800">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="submit"
+                    className="py-2 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-lg cursor-pointer transition-colors"
+                  >
+                    Save Changes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const m = selectedMember;
+                      setSelectedMember(null);
+                      setMemberToDelete(m);
+                    }}
+                    className="py-2 px-3 bg-red-950/80 hover:bg-red-900 text-red-400 border border-red-800 text-xs font-bold rounded-lg flex items-center gap-1.5 cursor-pointer transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete Account</span>
+                  </button>
+                </div>
 
                 {selectedMember.isBanned ? (
                   <button
@@ -1155,7 +1180,7 @@ export const AdminPortal: React.FC = () => {
                       unbanMember(selectedMember.id);
                       setSelectedMember(null);
                     }}
-                    className="py-2 px-4 bg-emerald-600 text-slate-950 font-bold rounded-lg"
+                    className="py-2 px-4 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold rounded-lg cursor-pointer"
                   >
                     Unban Member
                   </button>
@@ -1166,13 +1191,55 @@ export const AdminPortal: React.FC = () => {
                       banMember(selectedMember.id, banReasonInput);
                       setSelectedMember(null);
                     }}
-                    className="py-2 px-4 bg-red-600 text-white font-bold rounded-lg"
+                    className="py-2 px-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg cursor-pointer"
                   >
                     Ban Member
                   </button>
                 )}
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: PERMANENT DELETE CONFIRMATION ================= */}
+      {memberToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-red-900/60 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 space-y-4 animate-in fade-in">
+            <div className="w-12 h-12 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+
+            <div className="text-center space-y-1.5">
+              <h3 className="font-bold text-base text-slate-100">সদস্য অ্যাকাউন্ট মুছে ফেলবেন?</h3>
+              <p className="text-xs text-slate-300">
+                আপনি কি নিশ্চিত যে <span className="text-amber-400 font-bold font-mono">{memberToDelete.name} ({memberToDelete.memberCode})</span> এর অ্যাকাউন্ট ও যাবতীয় ডেটা স্থায়ীভাবে ডিলিট করতে চান?
+              </p>
+              <p className="text-[11px] text-red-400 font-semibold bg-red-950/50 border border-red-900/40 p-2.5 rounded-lg mt-2 text-left">
+                ⚠️ এই অ্যাকশনটি অপরিবর্তনযোগ্য। ইউজারের ওয়ালেট ব্যালেন্স, মাইনিং প্ল্যান ও ট্রানজেকশন হিস্ট্রি স্থায়ীভাবে মুছে যাবে।
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setMemberToDelete(null)}
+                className="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl cursor-pointer"
+              >
+                বাতিল করুন
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteMember(memberToDelete.id);
+                  setMemberToDelete(null);
+                }}
+                className="py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-red-600/30"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>হ্যাঁ, ডিলিট করুন</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
