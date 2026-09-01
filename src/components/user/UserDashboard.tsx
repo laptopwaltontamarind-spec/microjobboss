@@ -741,21 +741,30 @@ export const UserDashboard: React.FC = () => {
                           {gateways[selectedDepositGateway].accountType}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between bg-slate-900 p-2.5 rounded-lg">
-                        <span className="font-mono text-base font-bold text-slate-100 tracking-wider">
-                          {gateways[selectedDepositGateway].accountNumber}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => copyToClipboard(gateways[selectedDepositGateway].accountNumber)}
-                          className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded flex items-center gap-1 cursor-pointer"
-                        >
-                          {copiedNumber ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                          <span>{copiedNumber ? 'Copied' : 'Copy'}</span>
-                        </button>
-                      </div>
+                      {gateways[selectedDepositGateway].accountNumber?.trim() ? (
+                        <div className="flex items-center justify-between bg-slate-900 p-2.5 rounded-lg">
+                          <span className="font-mono text-base font-bold text-amber-400 tracking-wider">
+                            {gateways[selectedDepositGateway].accountNumber}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(gateways[selectedDepositGateway].accountNumber)}
+                            className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded flex items-center gap-1 cursor-pointer transition-all"
+                          >
+                            {copiedNumber ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                            <span>{copiedNumber ? 'Copied' : 'Copy'}</span>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="bg-slate-900/90 border border-amber-500/20 p-3 rounded-lg flex items-center gap-2 text-amber-400 text-xs font-medium">
+                          <AlertCircle className="w-4 h-4 shrink-0" />
+                          <span>বর্তমানে {selectedDepositGateway}-এ কোনো অফিশিয়াল নম্বর যুক্ত নেই (ফাঁকা রয়েছে)। অনুগ্রহ করে <strong>bKash</strong> সিলেক্ট করে ডিপোজিট করুন।</span>
+                        </div>
+                      )}
                       <p className="text-[10px] text-slate-400 leading-relaxed">
-                        {gateways[selectedDepositGateway].instructions}
+                        {gateways[selectedDepositGateway].accountNumber?.trim()
+                          ? gateways[selectedDepositGateway].instructions
+                          : 'অ্যাডমিন প্যানেল থেকে নম্বর সেট না করা পর্যন্ত এই মাধ্যমটি নিষ্ক্রিয় থাকবে।'}
                       </p>
                     </div>
                   )}
@@ -816,15 +825,23 @@ export const UserDashboard: React.FC = () => {
 
                     <button
                       type="submit"
-                      disabled={depositTrxId.trim().length >= 4 && deposits.some(d => d.trxId.trim().toUpperCase() === depositTrxId.trim().toUpperCase())}
+                      disabled={
+                        !gateways[selectedDepositGateway]?.accountNumber?.trim() ||
+                        (depositTrxId.trim().length >= 4 && deposits.some(d => d.trxId.trim().toUpperCase() === depositTrxId.trim().toUpperCase()))
+                      }
                       className={`w-full py-3 font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all ${
-                        depositTrxId.trim().length >= 4 && deposits.some(d => d.trxId.trim().toUpperCase() === depositTrxId.trim().toUpperCase())
+                        !gateways[selectedDepositGateway]?.accountNumber?.trim() ||
+                        (depositTrxId.trim().length >= 4 && deposits.some(d => d.trxId.trim().toUpperCase() === depositTrxId.trim().toUpperCase()))
                           ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
                           : 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 text-slate-950 shadow-emerald-500/20 cursor-pointer'
                       }`}
                     >
                       <ArrowDownLeft className="w-4 h-4" />
-                      <span>Submit Deposit Request (৳{depositAmount.toLocaleString()})</span>
+                      <span>
+                        {!gateways[selectedDepositGateway]?.accountNumber?.trim()
+                          ? `ডিপোজিট বন্ধ (${selectedDepositGateway}-এ কোনো নম্বর নেই)`
+                          : `Submit Deposit Request (৳${depositAmount.toLocaleString()})`}
+                      </span>
                     </button>
                   </form>
                 </div>

@@ -998,13 +998,19 @@ export const AdminPortal: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">Official Wallet Number</label>
+                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                      Official Wallet Number (ডিপোজিট রিসিভ নম্বর)
+                    </label>
                     <input
                       type="text"
+                      placeholder="e.g. 01821192590 (ফাঁকা রাখলে ইউজার ডিপোজিট করতে পারবে না)"
                       value={gw.accountNumber}
                       onChange={(e) => updateGatewayConfig(gwKey, { accountNumber: e.target.value })}
                       className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono text-slate-100 focus:border-amber-500"
                     />
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      {gw.accountNumber ? `সক্রিয় নম্বর: ${gw.accountNumber}` : '⚠️ বর্তমানে কোনো নম্বর সেট নেই (ফাঁকা রয়েছে)'}
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 text-xs">
@@ -1031,8 +1037,39 @@ export const AdminPortal: React.FC = () => {
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div>
+                      <label className="block text-[10px] font-semibold text-slate-400 mb-1">Min Withdraw (৳)</label>
+                      <input
+                        type="number"
+                        value={gw.minWithdraw || 300}
+                        onChange={(e) => updateGatewayConfig(gwKey, { minWithdraw: Number(e.target.value) })}
+                        className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-100"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-semibold text-slate-400 mb-1">Max Withdraw (৳)</label>
+                      <input
+                        type="number"
+                        value={gw.maxWithdraw || 25000}
+                        onChange={(e) => updateGatewayConfig(gwKey, { maxWithdraw: Number(e.target.value) })}
+                        className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-100"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-semibold text-slate-400 mb-1">Withdraw Fee (%)</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={gw.withdrawFeePercent ?? 3.2}
+                        onChange={(e) => updateGatewayConfig(gwKey, { withdrawFeePercent: Number(e.target.value) })}
+                        className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-100"
+                      />
+                    </div>
+                  </div>
+
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">Instructions</label>
+                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">Instructions (নির্দেশনা)</label>
                     <textarea
                       rows={2}
                       value={gw.instructions}

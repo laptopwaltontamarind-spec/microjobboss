@@ -193,13 +193,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const stored = getStorage<Record<string, GatewayConfigItem>>(STORAGE_KEYS.GATEWAYS, DEFAULT_GATEWAYS);
     if (!stored) return DEFAULT_GATEWAYS;
     const upgraded: Record<string, GatewayConfigItem> = {};
-    Object.keys(stored).forEach(key => {
+    Object.keys(DEFAULT_GATEWAYS).forEach(key => {
+      const existing = stored[key] || DEFAULT_GATEWAYS[key];
+      let accNum = existing.accountNumber ?? '';
+      // Migrate old placeholder numbers to requested default: bKash has 01821192590, others empty
+      if (key === 'bKash' && (accNum === '01798-56656' || !accNum)) {
+        accNum = '01821192590';
+      } else if (key === 'Nagad' && accNum === '01882-798980') {
+        accNum = '';
+      } else if (key === 'Rocket' && accNum === '01915-909090') {
+        accNum = '';
+      } else if (key === 'mCash' && accNum === '01620-989898') {
+        accNum = '';
+      }
+
       upgraded[key] = {
-        ...stored[key],
-        minDeposit: stored[key].minDeposit < 300 ? 300 : stored[key].minDeposit,
-        minWithdraw: (stored[key].minWithdraw === 150 || !stored[key].minWithdraw) ? 300 : stored[key].minWithdraw,
-        maxWithdraw: (stored[key].maxWithdraw === 50000 || !stored[key].maxWithdraw) ? 25000 : stored[key].maxWithdraw,
-        withdrawFeePercent: (stored[key].withdrawFeePercent === 15.0 || stored[key].withdrawFeePercent === 15 || stored[key].withdrawFeePercent === undefined) ? 3.2 : stored[key].withdrawFeePercent
+        ...DEFAULT_GATEWAYS[key],
+        ...existing,
+        accountNumber: accNum,
+        minDeposit: existing.minDeposit < 300 ? 300 : existing.minDeposit,
+        minWithdraw: (existing.minWithdraw === 150 || !existing.minWithdraw) ? 300 : existing.minWithdraw,
+        maxWithdraw: (existing.maxWithdraw === 50000 || !existing.maxWithdraw) ? 25000 : existing.maxWithdraw,
+        withdrawFeePercent: (existing.withdrawFeePercent === 15.0 || existing.withdrawFeePercent === 15 || existing.withdrawFeePercent === undefined) ? 3.2 : existing.withdrawFeePercent
       };
     });
     return upgraded;
@@ -754,6 +769,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const gwConfig = gateways[gateway];
+    if (!gwConfig?.accountNumber?.trim()) {
+      return { success: false, message: `বর্তমানে ${gateway}-এ কোনো ডিপোজিট নম্বর যুক্ত নেই (ফাঁকা রয়েছে)। অনুগ্রহ করে bKash সিলেক্ট করে ডিপোজিট করুন অথবা অ্যাডমিনের সাথে যোগাযোগ করুন।` };
+    }
+
     if (amount < (gwConfig?.minDeposit || 300)) {
       return { success: false, message: `${gateway}-এ সর্বনিম্ন ডিপোজিট ৳${gwConfig?.minDeposit || 300}` };
     }

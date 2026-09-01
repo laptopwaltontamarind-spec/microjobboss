@@ -69,7 +69,7 @@ export const DEFAULT_GATEWAYS: Record<string, GatewayConfigItem> = {
   bKash: {
     gateway: 'bKash',
     name: 'bKash Personal / Send Money',
-    accountNumber: '01798-56656',
+    accountNumber: '01821192590',
     accountType: 'Personal',
     minDeposit: 300,
     maxDeposit: 100000,
@@ -84,7 +84,7 @@ export const DEFAULT_GATEWAYS: Record<string, GatewayConfigItem> = {
   Nagad: {
     gateway: 'Nagad',
     name: 'Nagad Personal / Send Money',
-    accountNumber: '01882-798980',
+    accountNumber: '',
     accountType: 'Personal',
     minDeposit: 300,
     maxDeposit: 100000,
@@ -92,14 +92,14 @@ export const DEFAULT_GATEWAYS: Record<string, GatewayConfigItem> = {
     maxWithdraw: 25000,
     withdrawFeePercent: 3.2,
     isActive: true,
-    instructions: 'Go to your Nagad App or dial *167# -> Send Money to this number -> Copy Transaction ID (TrxID) and enter below.',
+    instructions: 'Go to your Nagad App or dial *167# -> Send Money to our official number -> Copy Transaction ID (TrxID) and enter below.',
     iconColor: '#F7941D',
     bgColor: 'rgba(247, 148, 29, 0.12)'
   },
   Rocket: {
     gateway: 'Rocket',
     name: 'Dutch-Bangla Rocket Personal',
-    accountNumber: '01915-909090',
+    accountNumber: '',
     accountType: 'Personal',
     minDeposit: 300,
     maxDeposit: 100000,
@@ -107,14 +107,14 @@ export const DEFAULT_GATEWAYS: Record<string, GatewayConfigItem> = {
     maxWithdraw: 25000,
     withdrawFeePercent: 3.2,
     isActive: true,
-    instructions: 'Go to your DBBL Rocket App or dial *322# -> Send Money to this 12-digit number -> Enter TrxID below.',
+    instructions: 'Go to your DBBL Rocket App or dial *322# -> Send Money to our official number -> Enter TrxID below.',
     iconColor: '#8C3494',
     bgColor: 'rgba(140, 52, 148, 0.12)'
   },
   mCash: {
     gateway: 'mCash',
     name: 'Islami Bank mCash',
-    accountNumber: '01620-989898',
+    accountNumber: '',
     accountType: 'Personal',
     minDeposit: 300,
     maxDeposit: 100000,
