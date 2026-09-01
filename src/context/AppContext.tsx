@@ -27,6 +27,28 @@ import {
   DEFAULT_RESET_REQUESTS, 
   DEFAULT_SETTINGS 
 } from '../data/initialData';
+import {
+  subscribeToUsers,
+  subscribeToDeposits,
+  subscribeToWithdrawals,
+  subscribeToInvestments,
+  subscribeToAuditLogs,
+  subscribeToSupport,
+  subscribeToResets,
+  subscribeToSettings,
+  subscribeToTickers,
+  firestoreSaveUser,
+  firestoreSaveDeposit,
+  firestoreSaveWithdraw,
+  firestoreSaveInvestment,
+  firestoreSaveAuditLog,
+  firestoreSaveSupportTicket,
+  firestoreSaveResetRequest,
+  firestoreSaveSettings,
+  firestoreSaveTicker,
+  firestoreDeleteMemberData,
+  seedInitialFirestoreData
+} from '../services/firebaseService';
 
 interface AppContextType {
   // Navigation & Portal View
@@ -255,6 +277,67 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => { setStorage(STORAGE_KEYS.CURRENT_USER_ID, currentUserId); }, [currentUserId]);
   useEffect(() => { setStorage(STORAGE_KEYS.CURRENT_ADMIN_ID, currentAdminId); }, [currentAdminId]);
 
+  // Real-time Cloud Firebase Database Synchronization across all devices (Mobile / PC / Laptop)
+  useEffect(() => {
+    // Initial check & seed default admin/gateways if cloud DB is freshly provisioned
+    seedInitialFirestoreData(DEFAULT_USERS, DEFAULT_GATEWAYS, DEFAULT_SETTINGS);
+
+    const unsubUsers = subscribeToUsers((cloudUsers) => {
+      setUsers(prev => {
+        // Merge cloud users with local state
+        const map = new Map<string, User>();
+        prev.forEach(u => map.set(u.id, u));
+        cloudUsers.forEach(u => map.set(u.id, u));
+        return Array.from(map.values());
+      });
+    });
+
+    const unsubDeposits = subscribeToDeposits((cloudDeposits) => {
+      setDeposits(cloudDeposits);
+    });
+
+    const unsubWithdrawals = subscribeToWithdrawals((cloudWithdraws) => {
+      setWithdraws(cloudWithdraws);
+    });
+
+    const unsubInvestments = subscribeToInvestments((cloudInvestments) => {
+      setInvestments(cloudInvestments);
+    });
+
+    const unsubAuditLogs = subscribeToAuditLogs((cloudLogs) => {
+      setAuditLogs(cloudLogs);
+    });
+
+    const unsubSupport = subscribeToSupport((cloudTickets) => {
+      setSupportTickets(cloudTickets);
+    });
+
+    const unsubResets = subscribeToResets((cloudResets) => {
+      setResetRequests(cloudResets);
+    });
+
+    const unsubSettings = subscribeToSettings(
+      (cloudGateways) => setGateways(cloudGateways),
+      (cloudSettings) => setSettings(prev => ({ ...prev, ...cloudSettings }))
+    );
+
+    const unsubTickers = subscribeToTickers((cloudTickers) => {
+      setLiveTickers(cloudTickers);
+    });
+
+    return () => {
+      unsubUsers();
+      unsubDeposits();
+      unsubWithdrawals();
+      unsubInvestments();
+      unsubAuditLogs();
+      unsubSupport();
+      unsubResets();
+      unsubSettings();
+      unsubTickers();
+    };
+  }, []);
+
   // Derived current active entities
   const currentUser = users.find(u => u.id === currentUserId) || null;
   const currentAdmin = users.find(u => u.id === currentAdminId && (u.role === 'admin' || u.role === 'moderator')) || null;
@@ -425,11 +508,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setUsers(updatedUsers);
     setStorage(STORAGE_KEYS.USERS, updatedUsers);
+    firestoreSaveUser(newUser);
+
+    // If referred, update referrer's count and persist to Firestore
+    if (validReferrer) {
+      const updatedRef = { ...validReferrer, referralCount: validReferrer.referralCount + 1 };
+      firestoreSaveUser(updatedRef);
+    }
 
     // Update settings total members count
     setSettings(prev => {
       const updated = { ...prev, totalMembersCount: prev.totalMembersCount + 1 };
       setStorage(STORAGE_KEYS.SETTINGS, updated);
+      firestoreSaveSettings(gateways, updated);
       return updated;
     });
 
@@ -508,6 +599,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setResetRequests(prev => [newReq, ...prev]);
+    firestoreSaveResetRequest(newReq);
     return { 
       success: true, 
       message: `Password reset request submitted! Verification Code (${resetCode}) sent to Admin dashboard. Admin will verify and approve your new password.`,
@@ -573,15 +665,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setUsers(prev => prev.map(u => {
       if (u.id === currentUser.id) {
-        return {
+        const updated = {
           ...u,
           walletBalance: balanceAfter
         };
+        firestoreSaveUser(updated);
+        return updated;
       }
       return u;
     }));
 
     setInvestments(prev => [newInvestment, ...prev]);
+    firestoreSaveInvestment(newInvestment);
 
     // Audit log for purchase
     const purchaseAudit: WalletAuditLog = {
@@ -598,6 +693,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       timestamp: now.toISOString()
     };
     setAuditLogs(prev => [purchaseAudit, ...prev]);
+    firestoreSaveAuditLog(purchaseAudit);
 
     // MLM Referral bonus & 4% plan commission distribution
     if (currentUser.referredBy) {
@@ -612,11 +708,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         setUsers(prev => prev.map(u => {
           if (u.id === referrer.id) {
-            return {
+            const updated = {
               ...u,
               walletBalance: u.walletBalance + totalBonus,
               referralEarnings: u.referralEarnings + totalBonus
             };
+            firestoreSaveUser(updated);
+            return updated;
           }
           return u;
         }));
@@ -639,6 +737,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           timestamp: new Date().toISOString()
         };
         setAuditLogs(prev => [refAudit, ...prev]);
+        firestoreSaveAuditLog(refAudit);
       }
     }
 
@@ -699,20 +798,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const isFinished = newClaimedDays >= 30 || newDaysRemaining === 0;
 
     // Update investment: advance claim count, subtract 1 day, add earned amount, set 24h cooldown
-    setInvestments(prev => prev.map(i => {
-      if (i.id === investmentId) {
-        return {
-          ...i,
-          lastClaimDate: new Date(now).toISOString(),
-          nextClaimDate: nextCycleTime,
-          claimedDaysCount: newClaimedDays,
-          totalClaimed: newTotalClaimed,
-          daysRemaining: newDaysRemaining,
-          status: isFinished ? 'completed' : 'active'
-        };
-      }
-      return i;
-    }));
+    const updatedInv: UserInvestment = {
+      ...inv,
+      lastClaimDate: new Date(now).toISOString(),
+      nextClaimDate: nextCycleTime,
+      claimedDaysCount: newClaimedDays,
+      totalClaimed: newTotalClaimed,
+      daysRemaining: newDaysRemaining,
+      status: isFinished ? 'completed' : 'active'
+    };
+    setInvestments(prev => prev.map(i => (i.id === investmentId ? updatedInv : i)));
+    firestoreSaveInvestment(updatedInv);
 
     // Credit user balance
     const balanceBefore = currentUser.walletBalance;
@@ -720,11 +816,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setUsers(prev => prev.map(u => {
       if (u.id === currentUser.id) {
-        return {
+        const updated = {
           ...u,
           walletBalance: balanceAfter,
           totalMiningEarned: u.totalMiningEarned + earned
         };
+        firestoreSaveUser(updated);
+        return updated;
       }
       return u;
     }));
@@ -744,6 +842,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       timestamp: new Date(now).toISOString()
     };
     setAuditLogs(prev => [audit, ...prev]);
+    firestoreSaveAuditLog(audit);
 
     confetti({ particleCount: 60, spread: 70 });
     if (isFinished) {
@@ -802,6 +901,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setDeposits(prev => [newDeposit, ...prev]);
+    firestoreSaveDeposit(newDeposit);
     toast(`৳${amount.toLocaleString()} ডিপোজিট রিকোয়েস্ট সফলভাবে জমা হয়েছে! TrxID: ${cleanTrx} ভেরিফাই করে অ্যাডমিন ব্যালেন্স যুক্ত করবেন।`, 'success');
     return { success: true, message: 'Deposit request submitted successfully' };
   };
@@ -859,6 +959,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setWithdraws(prev => [newWithdraw, ...prev]);
+    firestoreSaveWithdraw(newWithdraw);
+
+    if (currentUser) {
+      firestoreSaveUser({ ...currentUser, walletBalance: balanceAfter });
+    }
 
     // Audit Log for withdrawal requested
     const audit: WalletAuditLog = {
@@ -875,6 +980,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       timestamp: new Date().toISOString()
     };
     setAuditLogs(prev => [audit, ...prev]);
+    firestoreSaveAuditLog(audit);
 
     toast(`Withdrawal request for ৳${amount.toLocaleString()} submitted! Admin will send payment to your ${gateway} account.`, 'success');
     return { success: true, message: 'Withdrawal requested' };
@@ -902,6 +1008,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setSupportTickets(prev => [newTicket, ...prev]);
+    firestoreSaveSupportTicket(newTicket);
     toast('Your complaint/query was submitted to the Admin Support Desk!', 'success');
     return { success: true, message: 'Ticket submitted' };
   };
@@ -941,27 +1048,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Update user balance
     setUsers(prev => prev.map(u => {
       if (u.id === dep.userId) {
-        return {
+        const updated = {
           ...u,
           walletBalance: balanceAfter,
           totalDeposited: u.totalDeposited + dep.amount
         };
+        firestoreSaveUser(updated);
+        return updated;
       }
       return u;
     }));
 
     // Update deposit status
-    setDeposits(prev => prev.map(d => {
-      if (d.id === depositId) {
-        return {
-          ...d,
-          status: 'approved',
-          processedAt: new Date().toISOString(),
-          processedBy: currentAdmin?.memberCode || 'ADMIN'
-        };
-      }
-      return d;
-    }));
+    const updatedDep: DepositTransaction = {
+      ...dep,
+      status: 'approved',
+      processedAt: new Date().toISOString(),
+      processedBy: currentAdmin?.memberCode || 'ADMIN'
+    };
+    setDeposits(prev => prev.map(d => (d.id === depositId ? updatedDep : d)));
+    firestoreSaveDeposit(updatedDep);
 
     // Add Audit Log
     const audit: WalletAuditLog = {
@@ -979,6 +1085,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       timestamp: new Date().toISOString()
     };
     setAuditLogs(prev => [audit, ...prev]);
+    firestoreSaveAuditLog(audit);
 
     // Live Ticker update
     const tickerItem: LiveTickerItem = {
@@ -991,27 +1098,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       timestamp: Date.now()
     };
     setLiveTickers(prev => [tickerItem, ...prev.slice(0, 19)]);
+    firestoreSaveTicker(tickerItem);
 
     // Update platform settings total deposit volume
-    setSettings(prev => ({ ...prev, totalDepositsVolume: prev.totalDepositsVolume + dep.amount }));
+    setSettings(prev => {
+      const updated = { ...prev, totalDepositsVolume: prev.totalDepositsVolume + dep.amount };
+      firestoreSaveSettings(gateways, updated);
+      return updated;
+    });
 
     toast(`Approved ৳${dep.amount.toLocaleString()} deposit for ${user.name} (${user.memberCode})`, 'success');
   };
 
   // Admin: Reject Deposit
   const rejectDeposit = (depositId: string, reason: string) => {
-    setDeposits(prev => prev.map(d => {
-      if (d.id === depositId) {
-        return {
-          ...d,
-          status: 'rejected',
-          rejectReason: reason || 'Invalid TrxID or payment not received',
-          processedAt: new Date().toISOString(),
-          processedBy: currentAdmin?.memberCode || 'ADMIN'
-        };
-      }
-      return d;
-    }));
+    const dep = deposits.find(d => d.id === depositId);
+    if (dep) {
+      const updatedDep: DepositTransaction = {
+        ...dep,
+        status: 'rejected',
+        rejectReason: reason || 'Invalid TrxID or payment not received',
+        processedAt: new Date().toISOString(),
+        processedBy: currentAdmin?.memberCode || 'ADMIN'
+      };
+      setDeposits(prev => prev.map(d => (d.id === depositId ? updatedDep : d)));
+      firestoreSaveDeposit(updatedDep);
+    }
     toast('Deposit request rejected', 'info');
   };
 
@@ -1026,29 +1138,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (user) {
       setUsers(prev => prev.map(u => {
         if (u.id === user.id) {
-          return {
+          const updated = {
             ...u,
             totalWithdrawn: u.totalWithdrawn + wth.amount
           };
+          firestoreSaveUser(updated);
+          return updated;
         }
         return u;
       }));
     }
 
-    setWithdraws(prev => prev.map(w => {
-      if (w.id === withdrawId) {
-        return {
-          ...w,
-          status: 'approved',
-          processedAt: new Date().toISOString(),
-          processedBy: currentAdmin?.memberCode || 'ADMIN'
-        };
-      }
-      return w;
-    }));
+    const updatedWth: WithdrawTransaction = {
+      ...wth,
+      status: 'approved',
+      processedAt: new Date().toISOString(),
+      processedBy: currentAdmin?.memberCode || 'ADMIN'
+    };
+    setWithdraws(prev => prev.map(w => (w.id === withdrawId ? updatedWth : w)));
+    firestoreSaveWithdraw(updatedWth);
 
     // Update settings volume
-    setSettings(prev => ({ ...prev, totalWithdrawsVolume: prev.totalWithdrawsVolume + wth.amount }));
+    setSettings(prev => {
+      const updated = { ...prev, totalWithdrawsVolume: prev.totalWithdrawsVolume + wth.amount };
+      firestoreSaveSettings(gateways, updated);
+      return updated;
+    });
 
     // Live Ticker update
     const tickerItem: LiveTickerItem = {
@@ -1061,6 +1176,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       timestamp: Date.now()
     };
     setLiveTickers(prev => [tickerItem, ...prev.slice(0, 19)]);
+    firestoreSaveTicker(tickerItem);
 
     toast(`Approved ৳${wth.amount.toLocaleString()} withdrawal to ${wth.recipientNumber} (${wth.gateway})`, 'success');
   };
@@ -1131,10 +1247,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setUsers(prev => prev.map(u => {
       if (u.id === userId) {
-        return {
+        const updated = {
           ...u,
           walletBalance: balanceAfter
         };
+        firestoreSaveUser(updated);
+        return updated;
       }
       return u;
     }));
@@ -1153,6 +1271,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       timestamp: new Date().toISOString()
     };
     setAuditLogs(prev => [audit, ...prev]);
+    firestoreSaveAuditLog(audit);
 
     toast(`Adjusted wallet for ${user.name} (${user.memberCode}): ${isCredit ? '+' : '-'}৳${absAmount.toLocaleString()}`, 'success');
   };
@@ -1161,12 +1280,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const banMember = (userId: string, reason: string) => {
     setUsers(prev => prev.map(u => {
       if (u.id === userId) {
-        return {
+        const updated = {
           ...u,
           isBanned: true,
           banReason: reason || 'Violation of platform rules',
           bannedAt: new Date().toISOString()
         };
+        firestoreSaveUser(updated);
+        return updated;
       }
       return u;
     }));
@@ -1176,12 +1297,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const unbanMember = (userId: string) => {
     setUsers(prev => prev.map(u => {
       if (u.id === userId) {
-        return {
+        const updated = {
           ...u,
           isBanned: false,
           banReason: undefined,
           bannedAt: undefined
         };
+        firestoreSaveUser(updated);
+        return updated;
       }
       return u;
     }));
@@ -1222,6 +1345,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setStorage(STORAGE_KEYS.SUPPORT, updatedTickets);
     setStorage(STORAGE_KEYS.RESETS, updatedResets);
 
+    firestoreDeleteMemberData(userId);
+
     if (currentUserId === userId) {
       setCurrentUserId(null);
       setStorage(STORAGE_KEYS.CURRENT_USER_ID, null);
@@ -1234,10 +1359,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const editMemberDetails = (userId: string, updates: Partial<User>) => {
     setUsers(prev => prev.map(u => {
       if (u.id === userId) {
-        return {
+        const updated = {
           ...u,
           ...updates
         };
+        firestoreSaveUser(updated);
+        return updated;
       }
       return u;
     }));
@@ -1246,29 +1373,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Admin: Update Payment Gateway
   const updateGatewayConfig = (gatewayKey: string, config: Partial<GatewayConfigItem>) => {
-    setGateways(prev => ({
-      ...prev,
+    const updatedGateways = {
+      ...gateways,
       [gatewayKey]: {
-        ...prev[gatewayKey],
+        ...gateways[gatewayKey],
         ...config
       }
-    }));
+    };
+    setGateways(updatedGateways);
+    firestoreSaveSettings(updatedGateways, settings);
     toast(`Payment gateway (${gatewayKey}) updated successfully`, 'success');
   };
 
   // Admin: Reply to Support Ticket
   const replySupportTicket = (ticketId: string, reply: string, status: SupportTicket['status']) => {
-    setSupportTickets(prev => prev.map(t => {
-      if (t.id === ticketId) {
-        return {
-          ...t,
-          reply: reply.trim() || t.reply,
-          status,
-          updatedAt: new Date().toISOString()
-        };
-      }
-      return t;
-    }));
+    const tkt = supportTickets.find(t => t.id === ticketId);
+    if (tkt) {
+      const updatedTicket: SupportTicket = {
+        ...tkt,
+        reply: reply.trim() || tkt.reply,
+        status,
+        updatedAt: new Date().toISOString()
+      };
+      setSupportTickets(prev => prev.map(t => (t.id === ticketId ? updatedTicket : t)));
+      firestoreSaveSupportTicket(updatedTicket);
+    }
     toast('Reply sent to member ticket', 'success');
   };
 
@@ -1280,39 +1409,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (req.userId) {
       setUsers(prev => prev.map(u => {
         if (u.id === req.userId || u.phone === req.phone) {
-          return {
+          const updated = {
             ...u,
             password: newTemporaryPassword
           };
+          firestoreSaveUser(updated);
+          return updated;
         }
         return u;
       }));
     }
 
-    setResetRequests(prev => prev.map(r => {
-      if (r.id === requestId) {
-        return {
-          ...r,
-          status: 'approved',
-          newPassword: newTemporaryPassword
-        };
-      }
-      return r;
-    }));
+    const updatedReq: PasswordResetRequest = {
+      ...req,
+      status: 'approved',
+      newPassword: newTemporaryPassword
+    };
+    setResetRequests(prev => prev.map(r => (r.id === requestId ? updatedReq : r)));
+    firestoreSaveResetRequest(updatedReq);
 
     toast(`Password reset approved! Temporary password is set to: "${newTemporaryPassword}"`, 'success');
   };
 
   const rejectPasswordReset = (requestId: string) => {
-    setResetRequests(prev => prev.map(r => {
-      if (r.id === requestId) {
-        return {
-          ...r,
-          status: 'rejected'
-        };
-      }
-      return r;
-    }));
+    const req = resetRequests.find(r => r.id === requestId);
+    if (req) {
+      const updatedReq: PasswordResetRequest = {
+        ...req,
+        status: 'rejected'
+      };
+      setResetRequests(prev => prev.map(r => (r.id === requestId ? updatedReq : r)));
+      firestoreSaveResetRequest(updatedReq);
+    }
     toast('Password reset request rejected', 'info');
   };
 
@@ -1351,16 +1479,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setUsers(prev => [newMod, ...prev]);
+    firestoreSaveUser(newMod);
     toast(`Moderator ${name} (${modCode}) added successfully!`, 'success');
   };
 
   const updateModeratorPermissions = (userId: string, permissions: User['moderatorPermissions']) => {
     setUsers(prev => prev.map(u => {
       if (u.id === userId) {
-        return {
+        const updated = {
           ...u,
           moderatorPermissions: permissions
         };
+        firestoreSaveUser(updated);
+        return updated;
       }
       return u;
     }));
@@ -1369,12 +1500,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const deleteModerator = (userId: string) => {
     setUsers(prev => prev.filter(u => u.id !== userId));
+    firestoreDeleteMemberData(userId);
     toast('Moderator removed', 'info');
   };
 
   // Admin Settings & Ticker
   const updateSettings = (newSettings: Partial<PlatformSettings>) => {
-    setSettings(prev => ({ ...prev, ...newSettings }));
+    const updated = { ...settings, ...newSettings };
+    setSettings(updated);
+    firestoreSaveSettings(gateways, updated);
     toast('Platform settings saved', 'success');
   };
 

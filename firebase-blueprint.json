@@ -1,0 +1,76 @@
+{
+  "collections": [
+    {
+      "collectionName": "users",
+      "fields": [
+        { "fieldName": "id", "fieldType": "string" },
+        { "fieldName": "phone", "fieldType": "string" },
+        { "fieldName": "name", "fieldType": "string" },
+        { "fieldName": "password", "fieldType": "string" },
+        { "fieldName": "balance", "fieldType": "number" },
+        { "fieldName": "totalDeposited", "fieldType": "number" },
+        { "fieldName": "totalWithdrawn", "fieldType": "number" },
+        { "fieldName": "referralCode", "fieldType": "string" },
+        { "fieldName": "referredBy", "fieldType": "string" },
+        { "fieldName": "referralCount", "fieldType": "number" },
+        { "fieldName": "referralEarnings", "fieldType": "number" },
+        { "fieldName": "isBanned", "fieldType": "boolean" },
+        { "fieldName": "role", "fieldType": "string" },
+        { "fieldName": "createdAt", "fieldType": "string" }
+      ]
+    },
+    {
+      "collectionName": "deposits",
+      "fields": [
+        { "fieldName": "id", "fieldType": "string" },
+        { "fieldName": "userId", "fieldType": "string" },
+        { "fieldName": "userName", "fieldType": "string" },
+        { "fieldName": "userPhone", "fieldType": "string" },
+        { "fieldName": "gateway", "fieldType": "string" },
+        { "fieldName": "amount", "fieldType": "number" },
+        { "fieldName": "senderNumber", "fieldType": "string" },
+        { "fieldName": "trxId", "fieldType": "string" },
+        { "fieldName": "status", "fieldType": "string" },
+        { "fieldName": "createdAt", "fieldType": "string" }
+      ]
+    },
+    {
+      "collectionName": "withdrawals",
+      "fields": [
+        { "fieldName": "id", "fieldType": "string" },
+        { "fieldName": "userId", "fieldType": "string" },
+        { "fieldName": "userName", "fieldType": "string" },
+        { "fieldName": "userPhone", "fieldType": "string" },
+        { "fieldName": "gateway", "fieldType": "string" },
+        { "fieldName": "recipientNumber", "fieldType": "string" },
+        { "fieldName": "amount", "fieldType": "number" },
+        { "fieldName": "fee", "fieldType": "number" },
+        { "fieldName": "netAmount", "fieldType": "number" },
+        { "fieldName": "status", "fieldType": "string" },
+        { "fieldName": "createdAt", "fieldType": "string" }
+      ]
+    },
+    {
+      "collectionName": "transactions",
+      "fields": [
+        { "fieldName": "id", "fieldType": "string" },
+        { "fieldName": "userId", "fieldType": "string" },
+        { "fieldName": "type", "fieldType": "string" },
+        { "fieldName": "amount", "fieldType": "number" },
+        { "fieldName": "status", "fieldType": "string" },
+        { "fieldName": "date", "fieldType": "string" },
+        { "fieldName": "time", "fieldType": "string" },
+        { "fieldName": "description", "fieldType": "string" },
+        { "fieldName": "trxId", "fieldType": "string" }
+      ]
+    },
+    {
+      "collectionName": "settings",
+      "fields": [
+        { "fieldName": "id", "fieldType": "string" },
+        { "fieldName": "gateways", "fieldType": "object" },
+        { "fieldName": "plans", "fieldType": "array" }
+      ]
+    }
+  ]
+}
