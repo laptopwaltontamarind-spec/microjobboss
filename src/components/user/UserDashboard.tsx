@@ -986,7 +986,7 @@ export const UserDashboard: React.FC = () => {
                     <Share2 className="w-5 h-5 text-amber-400" />
                     <div>
                       <h3 className="font-bold text-sm text-slate-100">MLM Referral System & Commission</h3>
-                      <p className="text-[11px] text-slate-400">Earn ৳50 direct commission on every plan purchased by your referrals</p>
+                      <p className="text-[11px] text-slate-400">Earn ৳{settings.referralBonusPerPlan || 40} direct commission on every plan purchased by your referrals</p>
                     </div>
                   </div>
                 </div>
@@ -1026,7 +1026,7 @@ export const UserDashboard: React.FC = () => {
                     </div>
                     <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 col-span-2 sm:col-span-1">
                       <span className="text-[10px] text-slate-500 block">Plan Buy Commission</span>
-                      <span className="font-bold text-emerald-400 text-base">৳50 / Plan</span>
+                      <span className="font-bold text-emerald-400 text-base">৳{settings.referralBonusPerPlan || 40} / Plan</span>
                     </div>
                   </div>
                 </div>

@@ -121,7 +121,7 @@ export const LandingPage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4 text-amber-400" />
-                  <span>৳50 Instant Refer Bonus</span>
+                  <span>৳{settings.referralBonusPerPlan || 40} Instant Refer Bonus</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4 text-sky-400" />
@@ -458,17 +458,17 @@ export const LandingPage: React.FC = () => {
                 </div>
 
                 <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-100">
-                  Earn ৳50 Instant Bonus Every Time Your Referral Buys a Plan!
+                  Earn ৳{settings.referralBonusPerPlan || 40} Instant Bonus Every Time Your Referral Buys a Plan!
                 </h2>
 
                 <p className="text-slate-300 text-sm leading-relaxed max-w-2xl">
-                  Share your unique referral link (e.g. <span className="font-mono text-amber-400 font-bold">microjobboss.com/register?ref=micr879F70</span>). Whenever someone joins and purchases a mining plan, you immediately get <strong className="text-white">৳50 cash commission</strong> credited to your balance with zero restrictions.
+                  Share your unique referral link (e.g. <span className="font-mono text-amber-400 font-bold">microjobboss.com/register?ref=micr879F70</span>). Whenever someone joins and purchases a mining plan, you immediately get <strong className="text-white">৳{settings.referralBonusPerPlan || 40} cash commission</strong> credited to your balance with zero restrictions.
                 </p>
 
                 <div className="flex flex-wrap gap-4 pt-2">
                   <div className="bg-slate-950/80 border border-slate-800 px-4 py-2.5 rounded-xl font-mono text-xs">
                     <span className="text-slate-400">Direct Plan Bonus: </span>
-                    <span className="text-amber-400 font-bold">৳50 / Plan</span>
+                    <span className="text-amber-400 font-bold">৳{settings.referralBonusPerPlan || 40} / Plan</span>
                   </div>
                   <div className="bg-slate-950/80 border border-slate-800 px-4 py-2.5 rounded-xl font-mono text-xs">
                     <span className="text-slate-400">Withdraw Limit: </span>
