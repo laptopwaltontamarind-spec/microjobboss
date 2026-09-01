@@ -185,7 +185,11 @@ export interface PlatformSettings {
   totalMembersCount: number;
   totalDepositsVolume: number;
   totalWithdrawsVolume: number;
-  referralBonusPerPlan: number; // ৳40
+  displayTotalMembers?: string; // e.g. "67,000+"
+  displayTotalDeposits?: string; // e.g. "৳21 Cr+"
+  displayTotalWithdraws?: string; // e.g. "৳122 Cr+"
+  referralBonusPerPlan: number; // ৳40 direct commission on first plan
+  referralCommissionPercent: number; // 4% upline commission on every plan buy/renewal
   telegramSupportUrl: string;
   whatsappSupportUrl: string;
   helplinePhone: string;

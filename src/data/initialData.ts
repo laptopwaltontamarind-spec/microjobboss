@@ -17,31 +17,31 @@ export const DEFAULT_MINING_PLANS: MiningPlan[] = [
     id: 'plan_standard_12',
     name: 'Standard Mining Plan',
     dailyRoiPercent: 12.0,
-    minDeposit: 100,
+    minDeposit: 300,
     maxDeposit: 100000,
     durationDays: 30,
     badge: 'HOT POPULAR',
     description: 'Earn 12% daily guaranteed mining profit for 30 days. Auto payout every 24 hours directly to your main wallet balance.',
     features: [
       'Daily 12.00% Auto Return',
-      'Min: ৳100 - Max: ৳1,00,000',
+      'Min: ৳300 - Max: ৳1,00,000',
       '30-Day Lock Period with Auto Payout',
       'Re-invest option upon maturity',
       'Instant Claim / 24h Countdown Cycle',
-      '40 ৳ Instant Referrer Bonus on Purchase'
+      '৳40 First Plan Bonus + 4% Lifetime Commission'
     ]
   },
   {
     id: 'plan_starter_micro',
     name: 'Starter Micro Mining',
     dailyRoiPercent: 12.0,
-    minDeposit: 100,
+    minDeposit: 300,
     maxDeposit: 1000,
     durationDays: 30,
     badge: 'BEGINNER FRIENDLY',
-    description: 'Perfect for first-time users. Test the mining power with as low as ৳100.',
+    description: 'Perfect for first-time users. Test the mining power with as low as ৳300.',
     features: [
-      'Daily 12.00% Return (৳12 - ৳120 / day)',
+      'Daily 12.00% Return (৳36 - ৳120 / day)',
       '30 Days Active Yield Duration',
       'Instant bKash/Nagad/Rocket/mCash Cashout',
       'Zero withdrawal processing fee'
@@ -71,7 +71,7 @@ export const DEFAULT_GATEWAYS: Record<string, GatewayConfigItem> = {
     name: 'bKash Personal / Send Money',
     accountNumber: '01798-56656',
     accountType: 'Personal',
-    minDeposit: 100,
+    minDeposit: 300,
     maxDeposit: 100000,
     minWithdraw: 150,
     maxWithdraw: 50000,
@@ -86,7 +86,7 @@ export const DEFAULT_GATEWAYS: Record<string, GatewayConfigItem> = {
     name: 'Nagad Personal / Send Money',
     accountNumber: '01882-798980',
     accountType: 'Personal',
-    minDeposit: 100,
+    minDeposit: 300,
     maxDeposit: 100000,
     minWithdraw: 150,
     maxWithdraw: 50000,
@@ -101,7 +101,7 @@ export const DEFAULT_GATEWAYS: Record<string, GatewayConfigItem> = {
     name: 'Dutch-Bangla Rocket Personal',
     accountNumber: '01915-909090',
     accountType: 'Personal',
-    minDeposit: 100,
+    minDeposit: 300,
     maxDeposit: 100000,
     minWithdraw: 150,
     maxWithdraw: 50000,
@@ -116,7 +116,7 @@ export const DEFAULT_GATEWAYS: Record<string, GatewayConfigItem> = {
     name: 'Islami Bank mCash',
     accountNumber: '01620-989898',
     accountType: 'Personal',
-    minDeposit: 100,
+    minDeposit: 300,
     maxDeposit: 100000,
     minWithdraw: 150,
     maxWithdraw: 50000,
@@ -212,14 +212,18 @@ export const DEFAULT_RESET_REQUESTS: PasswordResetRequest[] = [];
 
 export const DEFAULT_SETTINGS: PlatformSettings = {
   siteName: 'MICROJOBBOSS',
-  totalMembersCount: 19892,
-  totalDepositsVolume: 19452000,
-  totalWithdrawsVolume: 18920500,
-  referralBonusPerPlan: 40, // ৳40 direct commission
+  totalMembersCount: 67000,
+  totalDepositsVolume: 210000000,
+  totalWithdrawsVolume: 1220000000,
+  displayTotalMembers: '67,000+',
+  displayTotalDeposits: '৳21 Cr+',
+  displayTotalWithdraws: '৳122 Cr+',
+  referralBonusPerPlan: 40, // ৳40 direct commission on first plan
+  referralCommissionPercent: 4.0, // 4% upline commission on all plan purchases
   telegramSupportUrl: 'https://t.me/microjobboss_official',
   whatsappSupportUrl: 'https://wa.me/8801700000000',
   helplinePhone: '+880 1700-000000',
-  announcementNotice: '🔥 Welcome to MICROJOBBOSS! Enjoy 12% daily return with 30-day continuous mining cycle. Instant bKash, Nagad, Rocket, mCash cashouts 24/7! Refer friends and earn ৳40 instant commission per plan.',
+  announcementNotice: '🔥 Welcome to MICROJOBBOSS! Enjoy 12% daily return with 30-day continuous mining cycle. Instant bKash, Nagad, Rocket, mCash cashouts 24/7! Refer friends and earn ৳40 instant bonus + 4% lifetime plan commission.',
   isMaintenanceMode: false,
   maintenanceNotice: 'সাইটের সিস্টেম আপডেট ও সার্ভার মেইনটেন্যান্স এর কাজ চলতেছে, কিছুক্ষণ অপেক্ষা করুন। খুব শীঘ্রই সাইট পুনরায় সচল হবে। সাময়িক অসুবিধার জন্য আমরা আন্তরিকভাবে দুঃখিত।',
   maintenanceEstimateTime: '15-30 মিনিট'

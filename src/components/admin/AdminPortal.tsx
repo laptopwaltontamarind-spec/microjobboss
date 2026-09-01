@@ -42,7 +42,8 @@ import {
   Coins,
   DollarSign,
   Activity,
-  PieChart
+  PieChart,
+  BarChart3
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { User, GatewayType, SupportTicket } from '../../types';
@@ -1930,6 +1931,56 @@ export const AdminPortal: React.FC = () => {
           </div>
 
           <div className="space-y-4 max-w-xl text-xs">
+            {/* Landing Page Metrics Editor */}
+            <div className="p-4 bg-slate-950/80 border border-amber-500/30 rounded-2xl space-y-3.5">
+              <div className="flex items-center gap-2 text-amber-400 font-bold text-sm border-b border-slate-800 pb-2">
+                <BarChart3 className="w-4 h-4" />
+                <span>Landing Page Platform Statistics (হোমপেজ লাইভ কাউন্টার সেটিংস)</span>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                ল্যান্ডিং পেজে প্রদর্শিত মোট একটিভ মেম্বার, মোট ভেরিফাইড ডিপোজিট এবং মোট উইথড্রল টেক্সট এখান থেকে সরাসরি পরিবর্তন করতে পারবেন।
+              </p>
+
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">
+                  Total Active Members (মোট সক্রিয় সদস্য সংখ্যা)
+                </label>
+                <input
+                  type="text"
+                  value={settings.displayTotalMembers || '67,000+'}
+                  onChange={(e) => updateSettings({ displayTotalMembers: e.target.value })}
+                  placeholder="67,000+"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-slate-100 font-mono focus:border-amber-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">
+                  Total Deposits Verified (মোট ভেরিফাইড ডিপোজিট ভলিউম)
+                </label>
+                <input
+                  type="text"
+                  value={settings.displayTotalDeposits || '৳21 Cr+'}
+                  onChange={(e) => updateSettings({ displayTotalDeposits: e.target.value })}
+                  placeholder="৳21 Cr+ / 21 কোটি"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-slate-100 font-mono focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">
+                  Total Withdraws Paid (মোট সফল উইথড্র ভলিউম)
+                </label>
+                <input
+                  type="text"
+                  value={settings.displayTotalWithdraws || '৳122 Cr+'}
+                  onChange={(e) => updateSettings({ displayTotalWithdraws: e.target.value })}
+                  placeholder="৳122 Cr+ / 122 কোটি"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-slate-100 font-mono focus:border-rose-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
             <div>
               <label className="block font-semibold text-slate-300 mb-1">Announcement Notice Text (মারকিউ নোটিস)</label>
               <textarea
@@ -1942,7 +1993,7 @@ export const AdminPortal: React.FC = () => {
 
             <div>
               <label className="block font-semibold text-slate-300 mb-1">
-                Referral Bonus Per Plan (৳) - রেফারেল বোনাস
+                Referral Bonus (1st Plan Purchase) - ১ম প্ল্যান কেনার ইনস্ট্যান্ট ফিক্সড বোনাস (৳)
               </label>
               <input
                 type="number"
@@ -1951,7 +2002,23 @@ export const AdminPortal: React.FC = () => {
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100 font-mono"
               />
               <p className="text-[10px] text-amber-400 mt-1">
-                ✓ বর্তমানে প্রতি প্ল্যান পার্চেসে রেফারার ৳{settings.referralBonusPerPlan} বোনাস ইনস্ট্যান্ট পাবে।
+                ✓ ডাউনলাইন ১ম বার প্ল্যান পার্চেস করলে রেফারার ইনস্ট্যান্ট ৳{settings.referralBonusPerPlan} ফিক্সড বোনাস পাবে।
+              </p>
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-300 mb-1">
+                Referral Plan Commission (%) - প্রতিবার প্ল্যান কেনা ও রিনিউ করার কমিশন (%)
+              </label>
+              <input
+                type="number"
+                step="0.5"
+                value={settings.referralCommissionPercent || 4}
+                onChange={(e) => updateSettings({ referralCommissionPercent: Number(e.target.value) })}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100 font-mono"
+              />
+              <p className="text-[10px] text-emerald-400 mt-1">
+                ✓ ডাউনলাইন যেকোনো সময় যেকোনো অ্যামাউন্টের প্ল্যান কিনলে বা ৩০ দিন পর রিনিউ করলে রেফারার/আপলাইন প্ল্যানের {settings.referralCommissionPercent || 4}% কমিশন পাবে।
               </p>
             </div>
 

@@ -189,14 +189,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [auditLogs, setAuditLogs] = useState<WalletAuditLog[]>(() => getStorage<WalletAuditLog[]>(STORAGE_KEYS.AUDIT_LOGS, DEFAULT_AUDIT_LOGS));
   const [supportTickets, setSupportTickets] = useState<SupportTicket[]>(() => getStorage<SupportTicket[]>(STORAGE_KEYS.SUPPORT, DEFAULT_SUPPORT_TICKETS));
   const [resetRequests, setResetRequests] = useState<PasswordResetRequest[]>(() => getStorage<PasswordResetRequest[]>(STORAGE_KEYS.RESETS, DEFAULT_RESET_REQUESTS));
-  const [gateways, setGateways] = useState<Record<string, GatewayConfigItem>>(() => getStorage<Record<string, GatewayConfigItem>>(STORAGE_KEYS.GATEWAYS, DEFAULT_GATEWAYS));
+  const [gateways, setGateways] = useState<Record<string, GatewayConfigItem>>(() => {
+    const stored = getStorage<Record<string, GatewayConfigItem>>(STORAGE_KEYS.GATEWAYS, DEFAULT_GATEWAYS);
+    if (!stored) return DEFAULT_GATEWAYS;
+    const upgraded: Record<string, GatewayConfigItem> = {};
+    Object.keys(stored).forEach(key => {
+      upgraded[key] = {
+        ...stored[key],
+        minDeposit: stored[key].minDeposit < 300 ? 300 : stored[key].minDeposit
+      };
+    });
+    return upgraded;
+  });
   const [liveTickers, setLiveTickers] = useState<LiveTickerItem[]>(() => getStorage<LiveTickerItem[]>(STORAGE_KEYS.TICKERS, DEFAULT_TICKERS));
   const [settings, setSettings] = useState<PlatformSettings>(() => {
     const stored = getStorage<Partial<PlatformSettings>>(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
     return {
       ...DEFAULT_SETTINGS,
       ...stored,
+      displayTotalMembers: stored?.displayTotalMembers || '67,000+',
+      displayTotalDeposits: stored?.displayTotalDeposits || '৳21 Cr+',
+      displayTotalWithdraws: stored?.displayTotalWithdraws || '৳122 Cr+',
       referralBonusPerPlan: (stored?.referralBonusPerPlan === 50 || !stored?.referralBonusPerPlan) ? 40 : stored.referralBonusPerPlan,
+      referralCommissionPercent: typeof stored?.referralCommissionPercent === 'number' ? stored.referralCommissionPercent : 4.0,
       isMaintenanceMode: typeof stored?.isMaintenanceMode === 'boolean' ? stored.isMaintenanceMode : false,
       maintenanceNotice: stored?.maintenanceNotice || DEFAULT_SETTINGS.maintenanceNotice,
       maintenanceEstimateTime: stored?.maintenanceEstimateTime || DEFAULT_SETTINGS.maintenanceEstimateTime
@@ -566,17 +581,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setAuditLogs(prev => [purchaseAudit, ...prev]);
 
-    // MLM Referral ৳40 bonus distribution
+    // MLM Referral bonus & 4% plan commission distribution
     if (currentUser.referredBy) {
       const referrer = users.find(u => u.memberCode === currentUser.referredBy || u.referralCode === currentUser.referredBy);
       if (referrer) {
-        const bonusAmount = settings.referralBonusPerPlan || 40;
+        // Check if this is the downline user's first plan or a subsequent re-purchase / renewal
+        const isFirstPlan = !investments.some(inv => inv.userId === currentUser.id);
+        const commissionPercent = typeof settings.referralCommissionPercent === 'number' ? settings.referralCommissionPercent : 4.0;
+        const planCommission = Math.round((amount * (commissionPercent / 100)) * 100) / 100;
+        const firstTimeFixedBonus = isFirstPlan ? (settings.referralBonusPerPlan || 40) : 0;
+        const totalBonus = firstTimeFixedBonus + planCommission;
+
         setUsers(prev => prev.map(u => {
           if (u.id === referrer.id) {
             return {
               ...u,
-              walletBalance: u.walletBalance + bonusAmount,
-              referralEarnings: u.referralEarnings + bonusAmount
+              walletBalance: u.walletBalance + totalBonus,
+              referralEarnings: u.referralEarnings + totalBonus
             };
           }
           return u;
@@ -587,12 +608,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           userId: referrer.id,
           memberCode: referrer.memberCode,
           type: 'referral_bonus',
-          title: `Referral Bonus (৳${bonusAmount})`,
-          amount: bonusAmount,
+          title: isFirstPlan 
+            ? `Referral Bonus (৳${totalBonus})`
+            : `Referral 4% Commission (৳${totalBonus})`,
+          amount: totalBonus,
           isCredit: true,
           balanceBefore: referrer.walletBalance,
-          balanceAfter: referrer.walletBalance + bonusAmount,
-          description: `Direct ৳${bonusAmount} reward from downline ${currentUser.memberCode} plan activation`,
+          balanceAfter: referrer.walletBalance + totalBonus,
+          description: isFirstPlan
+            ? `Direct ৳${firstTimeFixedBonus} 1st-plan bonus + 4% plan commission (৳${planCommission}) from downline ${currentUser.memberCode} plan purchase (৳${amount.toLocaleString()})`
+            : `4% commission (৳${planCommission}) from downline ${currentUser.memberCode} re-purchase / renewal plan (৳${amount.toLocaleString()})`,
           timestamp: new Date().toISOString()
         };
         setAuditLogs(prev => [refAudit, ...prev]);
@@ -726,8 +751,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const gwConfig = gateways[gateway];
-    if (amount < (gwConfig?.minDeposit || 100)) {
-      return { success: false, message: `${gateway}-এ সর্বনিম্ন ডিপোজিট ৳${gwConfig?.minDeposit || 100}` };
+    if (amount < (gwConfig?.minDeposit || 300)) {
+      return { success: false, message: `${gateway}-এ সর্বনিম্ন ডিপোজিট ৳${gwConfig?.minDeposit || 300}` };
     }
 
     // Strict duplicate check across all previous deposits

@@ -159,7 +159,7 @@ export const LandingPage: React.FC = () => {
                     </div>
                     <input
                       type="range"
-                      min={100}
+                      min={300}
                       max={50000}
                       step={100}
                       value={calcAmount}
@@ -167,7 +167,7 @@ export const LandingPage: React.FC = () => {
                       className="w-full h-2 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-amber-500"
                     />
                     <div className="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
-                      <span>Min: ৳100</span>
+                      <span>Min: ৳300</span>
                       <span>৳10,000</span>
                       <span>Max: ৳50,000</span>
                     </div>
@@ -175,7 +175,7 @@ export const LandingPage: React.FC = () => {
 
                   {/* Quick Select Buttons */}
                   <div className="grid grid-cols-4 gap-2">
-                    {[500, 1000, 2000, 5000].map((amt) => (
+                    {[300, 1000, 2000, 5000].map((amt) => (
                       <button
                         key={amt}
                         type="button"
@@ -243,7 +243,7 @@ export const LandingPage: React.FC = () => {
                 <Users className="w-6 h-6" />
               </div>
               <p className="text-2xl sm:text-3xl font-extrabold text-slate-100 font-mono">
-                {settings.totalMembersCount.toLocaleString()}
+                {settings.displayTotalMembers || (settings.totalMembersCount ? `${settings.totalMembersCount.toLocaleString()}+` : '67,000+')}
               </p>
               <p className="text-xs text-slate-400 font-semibold mt-1">Total Active Members</p>
             </div>
@@ -254,7 +254,7 @@ export const LandingPage: React.FC = () => {
                 <ArrowDownLeft className="w-6 h-6" />
               </div>
               <p className="text-2xl sm:text-3xl font-extrabold text-emerald-400 font-mono">
-                ৳{(settings.totalDepositsVolume / 100000).toFixed(2)} Lac+
+                {settings.displayTotalDeposits || '৳21 Cr+'}
               </p>
               <p className="text-xs text-slate-400 font-semibold mt-1">Total Deposits Verified</p>
             </div>
@@ -265,7 +265,7 @@ export const LandingPage: React.FC = () => {
                 <ArrowUpRight className="w-6 h-6" />
               </div>
               <p className="text-2xl sm:text-3xl font-extrabold text-rose-400 font-mono">
-                ৳{(settings.totalWithdrawsVolume / 100000).toFixed(2)} Lac+
+                {settings.displayTotalWithdraws || '৳122 Cr+'}
               </p>
               <p className="text-xs text-slate-400 font-semibold mt-1">Total Withdraws Paid</p>
             </div>
@@ -458,21 +458,21 @@ export const LandingPage: React.FC = () => {
                 </div>
 
                 <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-100">
-                  Earn ৳{settings.referralBonusPerPlan || 40} Instant Bonus Every Time Your Referral Buys a Plan!
+                  Earn ৳{settings.referralBonusPerPlan || 40} Instant Bonus + {settings.referralCommissionPercent || 4}% Lifetime Plan Commission!
                 </h2>
 
                 <p className="text-slate-300 text-sm leading-relaxed max-w-2xl">
-                  Share your unique referral link (e.g. <span className="font-mono text-amber-400 font-bold">microjobboss.com/register?ref=micr879F70</span>). Whenever someone joins and purchases a mining plan, you immediately get <strong className="text-white">৳{settings.referralBonusPerPlan || 40} cash commission</strong> credited to your balance with zero restrictions.
+                  Share your unique referral link (e.g. <span className="font-mono text-amber-400 font-bold">microjobboss.com/register?ref=micr879F70</span>). Whenever someone joins and buys their 1st mining plan, you immediately get <strong className="text-white">৳{settings.referralBonusPerPlan || 40} instant bonus + {settings.referralCommissionPercent || 4}% plan commission</strong>. Plus, every time they re-purchase or renew any plan, you continuously earn <strong className="text-amber-400">{settings.referralCommissionPercent || 4}% cash commission</strong> directly to your wallet!
                 </p>
 
                 <div className="flex flex-wrap gap-4 pt-2">
                   <div className="bg-slate-950/80 border border-slate-800 px-4 py-2.5 rounded-xl font-mono text-xs">
-                    <span className="text-slate-400">Direct Plan Bonus: </span>
-                    <span className="text-amber-400 font-bold">৳{settings.referralBonusPerPlan || 40} / Plan</span>
+                    <span className="text-slate-400">1st Plan Bonus: </span>
+                    <span className="text-amber-400 font-bold">৳{settings.referralBonusPerPlan || 40} / Member</span>
                   </div>
                   <div className="bg-slate-950/80 border border-slate-800 px-4 py-2.5 rounded-xl font-mono text-xs">
-                    <span className="text-slate-400">Withdraw Limit: </span>
-                    <span className="text-emerald-400 font-bold">No Minimums</span>
+                    <span className="text-slate-400">Plan Commission: </span>
+                    <span className="text-emerald-400 font-bold">{settings.referralCommissionPercent || 4}% (Every Plan & Renewal)</span>
                   </div>
                 </div>
               </div>
