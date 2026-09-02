@@ -985,6 +985,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: false, message: 'সঠিক রিসিভার নম্বর ও উত্তোলনের পরিমাণ দিন।' };
     }
 
+    // Security Rule: Users cannot directly withdraw deposited money or signup bonus without purchasing a plan and earning
+    const userInvestments = investments.filter(i => i.userId === currentUser.id);
+    const hasBoughtPlan = userInvestments.length > 0;
+    const hasEarned = (currentUser.totalMiningEarned || 0) > 0 || (currentUser.referralEarnings || 0) > 0 || userInvestments.some(i => (i.claimedDaysCount || 0) > 0);
+
+    if (!hasBoughtPlan || !hasEarned) {
+      toast('⚠️ Please buy the plan and earn money then withdraw! (প্লিজ আগে একটি প্ল্যান কিনুন এবং কাজ করে ইনকাম করুন, তারপর উইথড্র দিন!)', 'error');
+      return { 
+        success: false, 
+        message: '⚠️ Please buy the plan and earn money then withdraw! ডিপোজিট করার পর টাকা সরাসরি উইথড্র করা যাবে না, আগে মাইনিং প্ল্যান কিনে ইনকাম করে তারপর উইথড্র দিন।' 
+      };
+    }
+
     const gwConfig = gateways[gateway];
     const minWth = gwConfig?.minWithdraw || 300;
     const maxWth = gwConfig?.maxWithdraw || 25000;

@@ -21,6 +21,7 @@ import {
   Send, 
   Check, 
   AlertCircle,
+  AlertTriangle,
   Sparkles,
   ChevronRight,
   TrendingUp,
@@ -101,6 +102,11 @@ export const UserDashboard: React.FC = () => {
   const totalActiveCapital = activeInvestments.reduce((acc, curr) => acc + curr.investedAmount, 0);
   const totalDailyReturn = activeInvestments.reduce((acc, curr) => acc + curr.dailyReturnAmount, 0);
 
+  // Security Rule: User must buy a plan and earn money before withdrawing deposited funds
+  const hasPurchasedPlan = userInvestments.length > 0;
+  const hasEarned = (currentUser.totalMiningEarned || 0) > 0 || (currentUser.referralEarnings || 0) > 0 || userInvestments.some(i => (i.claimedDaysCount || 0) > 0);
+  const canWithdraw = hasPurchasedPlan && hasEarned;
+
   // Helper to calculate exact 24-hour cooldown for any investment (1st claim immediate, 24h for rest, 30-day maximum)
   const getInvestmentCooldown = (inv: typeof userInvestments[0]) => {
     const currentClaimed = inv.claimedDaysCount ?? (30 - inv.daysRemaining);
@@ -179,6 +185,10 @@ export const UserDashboard: React.FC = () => {
 
   const handleWithdrawSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canWithdraw) {
+      toast('⚠️ Please buy the plan and earn money then withdraw! (আগে প্ল্যান কিনে ইনকাম করুন, তারপর উইথড্র দিন)', 'error');
+      return;
+    }
     const res = submitWithdraw(selectedWithdrawGateway, withdrawRecipientNumber, withdrawAmount);
     if (res.success) {
       setActiveUserTab('history');
@@ -876,6 +886,31 @@ export const UserDashboard: React.FC = () => {
                     ))}
                   </div>
 
+                  {/* Anti-Fraud / Plan Purchase Requirement Warning */}
+                  {!canWithdraw && (
+                    <div className="bg-gradient-to-r from-amber-500/15 via-rose-500/15 to-amber-500/15 border-2 border-amber-500/60 p-4 rounded-xl text-xs space-y-2.5">
+                      <div className="flex items-start gap-2.5">
+                        <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                        <div className="space-y-1">
+                          <p className="font-bold text-amber-300 text-sm">
+                            ⚠️ Please buy the plan and earn money then withdraw!
+                          </p>
+                          <p className="text-slate-300 leading-relaxed">
+                            ডিপোজিট বা বোনাসের টাকা সরাসরি উইথড্র করা যাবে না। প্লিজ আগে একটি <strong>৮.৫০% ডেইলি মাইনিং প্ল্যান</strong> অ্যাক্টিভ করুন এবং কাজ/ইনকাম করে তারপর উইথড্র দিন।
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveUserTab('plans')}
+                        className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-bold rounded-lg flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+                      >
+                        <Zap className="w-4 h-4" />
+                        <span>Buy 8.5% Mining Plan Now (প্ল্যান কিনুন)</span>
+                      </button>
+                    </div>
+                  )}
+
                   <form onSubmit={handleWithdrawSubmit} className="space-y-3.5">
                     <div>
                       <label className="block text-xs font-semibold text-slate-300 mb-1">
@@ -924,15 +959,21 @@ export const UserDashboard: React.FC = () => {
 
                     <button
                       type="submit"
-                      disabled={currentUser.walletBalance < withdrawAmount}
+                      disabled={!canWithdraw || currentUser.walletBalance < withdrawAmount}
                       className={`w-full py-3 font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all ${
-                        currentUser.walletBalance >= withdrawAmount
+                        canWithdraw && currentUser.walletBalance >= withdrawAmount
                           ? 'bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-400 text-white shadow-rose-500/20 cursor-pointer'
                           : 'bg-slate-800 text-slate-500 cursor-not-allowed'
                       }`}
                     >
                       <ArrowUpRight className="w-4 h-4" />
-                      <span>Request Cashout (৳{withdrawAmount.toLocaleString()})</span>
+                      <span>
+                        {!canWithdraw
+                          ? '⚠️ Buy Plan & Earn Money to Unlock Withdraw'
+                          : currentUser.walletBalance < withdrawAmount
+                          ? 'অপর্যাপ্ত ব্যালেন্স (Insufficient Balance)'
+                          : `Request Cashout (৳${withdrawAmount.toLocaleString()})`}
+                      </span>
                     </button>
                   </form>
                 </div>
