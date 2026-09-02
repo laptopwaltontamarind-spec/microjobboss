@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   LogIn, 
@@ -15,7 +15,8 @@ import {
   HelpCircle,
   Sparkles,
   Eye,
-  EyeOff
+  EyeOff,
+  Loader2
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -38,6 +39,7 @@ export const AuthModal: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [referralCode, setReferralCode] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Password Visibility States
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -59,35 +61,65 @@ export const AuthModal: React.FC = () => {
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Auto-detect referral code from URL query (?ref=micr123AB) across any device
+  useEffect(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const refParam = urlParams.get('ref') || sessionStorage.getItem('mjb_referral_code');
+      if (refParam && refParam.trim()) {
+        const cleanRef = refParam.trim();
+        setReferralCode(cleanRef);
+        sessionStorage.setItem('mjb_referral_code', cleanRef);
+      }
+    } catch (e) {
+      console.warn('URL referral check:', e);
+    }
+  }, [isAuthModalOpen]);
+
   if (!isAuthModalOpen) return null;
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    setIsSubmitting(true);
 
-    const res = registerUser(name, phone, email, password, referralCode);
-    if (!res.success) {
-      setErrorMessage(res.message);
+    try {
+      const res = await registerUser(name, phone, email, password, referralCode);
+      if (!res.success) {
+        setErrorMessage(res.message);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    setIsSubmitting(true);
 
-    const res = loginUser(loginIdentifier, loginPassword);
-    if (!res.success) {
-      setErrorMessage(res.message);
+    try {
+      const res = await loginUser(loginIdentifier, loginPassword);
+      if (!res.success) {
+        setErrorMessage(res.message);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleAdminLogin = (e: React.FormEvent) => {
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    setIsSubmitting(true);
 
-    const res = loginAdmin(adminIdentifier, adminPassword);
-    if (!res.success) {
-      setErrorMessage(res.message);
+    try {
+      const res = await loginAdmin(adminIdentifier, adminPassword);
+      if (!res.success) {
+        setErrorMessage(res.message);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -213,10 +245,20 @@ export const AuthModal: React.FC = () => {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer text-sm"
+                disabled={isSubmitting}
+                className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer text-sm"
               >
-                <LogIn className="w-4 h-4" />
-                <span>Sign In to Dashboard</span>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Signing In...</span>
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="w-4 h-4" />
+                    <span>Sign In to Dashboard</span>
+                  </>
+                )}
               </button>
 
               <div className="text-center text-xs text-slate-400 pt-2 border-t border-slate-800/80">
@@ -339,10 +381,20 @@ export const AuthModal: React.FC = () => {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer text-sm"
+                disabled={isSubmitting}
+                className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer text-sm"
               >
-                <UserPlus className="w-4 h-4" />
-                <span>Complete Registration</span>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Creating Account...</span>
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-4 h-4" />
+                    <span>Complete Registration</span>
+                  </>
+                )}
               </button>
 
               <div className="text-center text-xs text-slate-400 pt-2 border-t border-slate-800/80">
@@ -496,10 +548,20 @@ export const AuthModal: React.FC = () => {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl shadow-lg shadow-rose-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                disabled={isSubmitting}
+                className="w-full py-3 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-rose-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
-                <Shield className="w-4 h-4" />
-                <span>Enter Admin Backoffice</span>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Verifying Credentials...</span>
+                  </>
+                ) : (
+                  <>
+                    <Shield className="w-4 h-4" />
+                    <span>Enter Admin Backoffice</span>
+                  </>
+                )}
               </button>
 
               <button

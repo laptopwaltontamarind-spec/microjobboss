@@ -47,6 +47,7 @@ import {
   firestoreSaveSettings,
   firestoreSaveTicker,
   firestoreDeleteMemberData,
+  fetchCloudUsersList,
   seedInitialFirestoreData
 } from '../services/firebaseService';
 
@@ -66,10 +67,10 @@ interface AppContextType {
   setIsAuthModalOpen: (open: boolean) => void;
   authModalMode: 'login' | 'register' | 'forgot' | 'admin_login';
   setAuthModalMode: (mode: 'login' | 'register' | 'forgot' | 'admin_login') => void;
-  loginUser: (identifier: string, pass: string) => { success: boolean; message: string };
-  registerUser: (name: string, phone: string, email: string, pass: string, refCode?: string) => { success: boolean; message: string };
+  loginUser: (identifier: string, pass: string) => Promise<{ success: boolean; message: string }> | { success: boolean; message: string };
+  registerUser: (name: string, phone: string, email: string, pass: string, refCode?: string) => Promise<{ success: boolean; message: string }> | { success: boolean; message: string };
   logoutUser: () => void;
-  loginAdmin: (identifier: string, pass: string) => { success: boolean; message: string };
+  loginAdmin: (identifier: string, pass: string) => Promise<{ success: boolean; message: string }> | { success: boolean; message: string };
   logoutAdmin: () => void;
   requestPasswordReset: (phoneOrEmail: string) => { success: boolean; message: string; code?: string };
   
@@ -403,30 +404,50 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Auth Operations
-  const loginUser = (identifier: string, pass: string) => {
+  const loginUser = async (identifier: string, pass: string) => {
     const rawId = identifier.trim();
     const cleanIdLower = rawId.toLowerCase();
     const cleanIdPhone = normalizePhone(rawId);
     const cleanPass = pass.trim();
 
-    const user = users.find(u => {
-      // Check identifier matches phone, email, or memberCode
-      const uPhoneClean = normalizePhone(u.phone);
-      const isPhoneMatch = cleanIdPhone.length >= 8 && uPhoneClean === cleanIdPhone;
-      const isEmailMatch = u.email.toLowerCase() === cleanIdLower;
-      const isMemberCodeMatch = u.memberCode.toLowerCase() === cleanIdLower;
+    let userPool = users;
 
-      if (!isPhoneMatch && !isEmailMatch && !isMemberCodeMatch) {
-        return false;
+    const findMatchingUser = (pool: User[]) => {
+      return pool.find(u => {
+        const uPhoneClean = normalizePhone(u.phone);
+        const isPhoneMatch = cleanIdPhone.length >= 8 && uPhoneClean === cleanIdPhone;
+        const isEmailMatch = u.email.toLowerCase() === cleanIdLower;
+        const isMemberCodeMatch = u.memberCode.toLowerCase() === cleanIdLower;
+
+        if (!isPhoneMatch && !isEmailMatch && !isMemberCodeMatch) {
+          return false;
+        }
+
+        return u.password === pass || 
+               u.password.trim() === cleanPass ||
+               u.password.toLowerCase() === cleanPass.toLowerCase();
+      });
+    };
+
+    let user = findMatchingUser(userPool);
+
+    // If not found in local memory (e.g. freshly opened device or cache delay), direct fetch from Firestore
+    if (!user) {
+      const cloudUsers = await fetchCloudUsersList();
+      if (cloudUsers.length > 0) {
+        user = findMatchingUser(cloudUsers);
+        if (user) {
+          setUsers(prev => {
+            const map = new Map<string, User>();
+            prev.forEach(u => map.set(u.id, u));
+            cloudUsers.forEach(u => map.set(u.id, u));
+            const merged = Array.from(map.values());
+            setStorage(STORAGE_KEYS.USERS, merged);
+            return merged;
+          });
+        }
       }
-
-      // Check password: allow exact, trimmed, or case-insensitive if alphanumeric
-      const isPassMatch = u.password === pass || 
-                          u.password.trim() === cleanPass ||
-                          u.password.toLowerCase() === cleanPass.toLowerCase();
-
-      return isPassMatch;
-    });
+    }
 
     if (!user) {
       return { success: false, message: 'ভুল মোবাইল নাম্বার/ইমেইল অথবা পাসওয়ার্ড! সঠিক তথ্য দিন।' };
@@ -449,7 +470,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: true, message: 'Login successful' };
   };
 
-  const registerUser = (name: string, phone: string, email: string, pass: string, refCode?: string) => {
+  const registerUser = async (name: string, phone: string, email: string, pass: string, refCode?: string) => {
     const cleanName = name.trim();
     const rawPhone = phone.trim();
     const cleanPhoneDigits = normalizePhone(rawPhone);
@@ -464,8 +485,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: false, message: 'সঠিক ১১ ডিজিটের মোবাইল নাম্বার দিন (যেমন: 017XXXXXXXX)।' };
     }
 
+    let userPool = users;
+
+    // Check cloud users to guarantee no duplicate registration across different devices
+    const cloudUsers = await fetchCloudUsersList();
+    if (cloudUsers.length > 0) {
+      const map = new Map<string, User>();
+      userPool.forEach(u => map.set(u.id, u));
+      cloudUsers.forEach(u => map.set(u.id, u));
+      userPool = Array.from(map.values());
+    }
+
     // Check duplicate phone or email
-    const exists = users.some(u => {
+    const exists = userPool.some(u => {
       const uPhoneClean = normalizePhone(u.phone);
       return (cleanPhoneDigits.length >= 8 && uPhoneClean === cleanPhoneDigits) || 
              u.email.toLowerCase() === cleanEmail;
@@ -484,7 +516,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     let validReferrer: User | undefined;
     if (refCode && refCode.trim()) {
       const cleanRef = refCode.trim().toLowerCase();
-      validReferrer = users.find(u => 
+      validReferrer = userPool.find(u => 
         u.referralCode.toLowerCase() === cleanRef ||
         u.memberCode.toLowerCase() === cleanRef ||
         normalizePhone(u.phone) === normalizePhone(cleanRef)
@@ -511,7 +543,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createdAt: new Date().toISOString()
     };
 
-    let updatedUsers = [newUser, ...users];
+    let updatedUsers = [newUser, ...userPool];
 
     // If referred, update referrer's count
     if (validReferrer) {
@@ -559,23 +591,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     toast('Logged out successfully', 'info');
   };
 
-  const loginAdmin = (identifier: string, pass: string) => {
+  const loginAdmin = async (identifier: string, pass: string) => {
     const rawId = identifier.trim();
     const cleanIdLower = rawId.toLowerCase();
     const cleanIdPhone = normalizePhone(rawId);
     const cleanPass = pass.trim();
 
-    const adminUser = users.find(u => {
-      if (u.role !== 'admin' && u.role !== 'moderator') return false;
-      const uPhoneClean = normalizePhone(u.phone);
-      const isPhoneMatch = cleanIdPhone.length >= 8 && uPhoneClean === cleanIdPhone;
-      const isEmailMatch = u.email.toLowerCase() === cleanIdLower;
-      const isMemberCodeMatch = u.memberCode.toLowerCase() === cleanIdLower;
+    let userPool = users;
 
-      if (!isPhoneMatch && !isEmailMatch && !isMemberCodeMatch) return false;
+    const findAdmin = (pool: User[]) => {
+      return pool.find(u => {
+        if (u.role !== 'admin' && u.role !== 'moderator') return false;
+        const uPhoneClean = normalizePhone(u.phone);
+        const isPhoneMatch = cleanIdPhone.length >= 8 && uPhoneClean === cleanIdPhone;
+        const isEmailMatch = u.email.toLowerCase() === cleanIdLower;
+        const isMemberCodeMatch = u.memberCode.toLowerCase() === cleanIdLower;
 
-      return u.password === pass || u.password.trim() === cleanPass;
-    });
+        if (!isPhoneMatch && !isEmailMatch && !isMemberCodeMatch) return false;
+
+        return u.password === pass || u.password.trim() === cleanPass;
+      });
+    };
+
+    let adminUser = findAdmin(userPool);
+
+    if (!adminUser) {
+      const cloudUsers = await fetchCloudUsersList();
+      if (cloudUsers.length > 0) {
+        adminUser = findAdmin(cloudUsers);
+        if (adminUser) {
+          setUsers(prev => {
+            const map = new Map<string, User>();
+            prev.forEach(u => map.set(u.id, u));
+            cloudUsers.forEach(u => map.set(u.id, u));
+            const merged = Array.from(map.values());
+            setStorage(STORAGE_KEYS.USERS, merged);
+            return merged;
+          });
+        }
+      }
+    }
 
     if (!adminUser) {
       return { success: false, message: 'ভুল অ্যাডমিন/মডারেটর ইউজারনেম অথবা পাসওয়ার্ড!' };

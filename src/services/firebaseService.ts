@@ -198,6 +198,18 @@ export const firestoreDeleteMemberData = async (userId: string) => {
   }
 };
 
+export const fetchCloudUsersList = async (): Promise<User[]> => {
+  try {
+    const snap = await getDocs(collection(db, COLLECTIONS.USERS));
+    const list: User[] = [];
+    snap.forEach((d) => list.push(d.data() as User));
+    return list;
+  } catch (e) {
+    console.error('Error direct fetching users from Firestore:', e);
+    return [];
+  }
+};
+
 // Seed database on first startup if empty
 export const seedInitialFirestoreData = async (
   defaultUsers: User[],
