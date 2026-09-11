@@ -348,7 +348,7 @@ export const UserDashboard: React.FC = () => {
                   }`}
                 >
                   <Share2 className="w-4 h-4" />
-                  <span>Referlink & MLM (৳{settings.referralBonusPerPlan || 60} বোনাস + {settings.referralCommissionPercent || 5}%)</span>
+                  <span>Referlink & MLM (৳{settings.referralBonusPerPlan || 40} বোনাস + {settings.referralCommissionPercent || 5}%)</span>
                 </button>
 
                 <button
@@ -385,6 +385,32 @@ export const UserDashboard: React.FC = () => {
           {/* TAB 1: MINING DASHBOARD */}
           {activeUserTab === 'dashboard' && (
             <div className="space-y-6 animate-in fade-in duration-200">
+
+              {/* 30-Day Plan Expiration Banner */}
+              {userInvestments.length > 0 && activeInvestments.length === 0 && (
+                <div className="bg-gradient-to-r from-amber-500/20 via-rose-500/20 to-amber-500/20 border-2 border-amber-500/80 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                      <AlertTriangle className="w-6 h-6 text-amber-400" />
+                    </div>
+                    <div>
+                      <p className="font-extrabold text-sm text-amber-300">
+                        ⚠️ আপনার ৩০ দিনের মাইনিং মেয়াদ শেষ হয়েছে!
+                      </p>
+                      <p className="text-xs text-slate-300 mt-0.5">
+                        নিয়ম অনুযায়ী ৩০ দিনের বেশি কাজ করা যাবে না। আবার কাজ ও প্রতিদিন ৮.৫০% ইনকাম শুরু করতে দয়া করে নতুন একটি প্ল্যান কিনুন।
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setActiveUserTab('plans')}
+                    className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-lg transition-all shrink-0 cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <Zap className="w-4 h-4" />
+                    <span>নতুন প্ল্যান কিনুন (Buy Plan)</span>
+                  </button>
+                </div>
+              )}
               
               {/* Top Mining Operation Status Banner */}
               <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-amber-950/40 border border-amber-500/30 rounded-2xl p-6 shadow-xl relative overflow-hidden">
@@ -654,11 +680,11 @@ export const UserDashboard: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                        Investment Amount (৳500 - ৳1,00,000)
+                        Investment Amount (৳১,০০০ - ৳১,০০,০০০)
                       </label>
                       <input
                         type="number"
-                        min={500}
+                        min={1000}
                         max={100000}
                         step={100}
                         required
@@ -782,11 +808,11 @@ export const UserDashboard: React.FC = () => {
                   <form onSubmit={handleDepositSubmit} className="space-y-3.5">
                     <div>
                       <label className="block text-xs font-semibold text-slate-300 mb-1">
-                        Deposit Amount (৳৫০০ – ৳১,০০,০০০)
+                        Deposit Amount (৳১,০০০ – ৳১,০০,০০০)
                       </label>
                       <input
                         type="number"
-                        min={gateways[selectedDepositGateway]?.minDeposit || 500}
+                        min={gateways[selectedDepositGateway]?.minDeposit || 1000}
                         max={gateways[selectedDepositGateway]?.maxDeposit || 100000}
                         required
                         value={depositAmount}
@@ -914,11 +940,11 @@ export const UserDashboard: React.FC = () => {
                   <form onSubmit={handleWithdrawSubmit} className="space-y-3.5">
                     <div>
                       <label className="block text-xs font-semibold text-slate-300 mb-1">
-                        Withdraw Amount (Min: ৳300 - Max: ৳25,000)
+                        Withdraw Amount (Min: ৳500 - Max: ৳25,000)
                       </label>
                       <input
                         type="number"
-                        min={gateways[selectedWithdrawGateway]?.minWithdraw || 300}
+                        min={gateways[selectedWithdrawGateway]?.minWithdraw || 500}
                         max={gateways[selectedWithdrawGateway]?.maxWithdraw || 25000}
                         required
                         value={withdrawAmount}
@@ -1044,7 +1070,7 @@ export const UserDashboard: React.FC = () => {
                     <Share2 className="w-5 h-5 text-amber-400" />
                     <div>
                       <h3 className="font-bold text-sm text-slate-100">MLM Referral System & Commission</h3>
-                      <p className="text-[11px] text-slate-400">Earn ৳{settings.referralBonusPerPlan || 60} direct bonus on 1st plan purchase + {settings.referralCommissionPercent || 5}% lifetime commission on every plan buy & renewal!</p>
+                      <p className="text-[11px] text-slate-400">Earn ৳{settings.referralBonusPerPlan || 40} direct bonus on 1st plan purchase + {settings.referralCommissionPercent || 5}% lifetime commission on every plan buy & renewal!</p>
                     </div>
                   </div>
                 </div>
@@ -1084,7 +1110,7 @@ export const UserDashboard: React.FC = () => {
                     </div>
                     <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 col-span-2 sm:col-span-1">
                       <span className="text-[10px] text-slate-500 block">Plan Buy Commission</span>
-                      <span className="font-bold text-emerald-400 text-base">৳{settings.referralBonusPerPlan || 60} + {settings.referralCommissionPercent || 5}%</span>
+                      <span className="font-bold text-emerald-400 text-base">৳{settings.referralBonusPerPlan || 40} + {settings.referralCommissionPercent || 5}%</span>
                     </div>
                   </div>
                 </div>
@@ -1097,7 +1123,7 @@ export const UserDashboard: React.FC = () => {
 
                   {downlineUsers.length === 0 ? (
                     <div className="text-center py-6 text-xs text-slate-500 bg-slate-950/60 rounded-xl border border-dashed border-slate-800">
-                      No members registered under your link yet. Share your code to earn ৳{settings.referralBonusPerPlan || 60} bonus + {settings.referralCommissionPercent || 5}% commission on every plan!
+                      No members registered under your link yet. Share your code to earn ৳{settings.referralBonusPerPlan || 40} bonus + {settings.referralCommissionPercent || 5}% commission on every plan!
                     </div>
                   ) : (
                     <div className="space-y-2">

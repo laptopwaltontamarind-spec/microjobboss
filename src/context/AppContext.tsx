@@ -234,9 +234,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ...DEFAULT_GATEWAYS[key],
         ...existing,
         accountNumber: accNum,
-        minDeposit: existing.minDeposit < 500 ? 500 : existing.minDeposit,
+        minDeposit: existing.minDeposit < 1000 ? 1000 : existing.minDeposit,
         maxDeposit: existing.maxDeposit || 100000,
-        minWithdraw: (existing.minWithdraw === 150 || !existing.minWithdraw) ? 300 : existing.minWithdraw,
+        minWithdraw: (existing.minWithdraw < 500 || !existing.minWithdraw) ? 500 : existing.minWithdraw,
         maxWithdraw: (existing.maxWithdraw === 50000 || !existing.maxWithdraw) ? 25000 : existing.maxWithdraw,
         withdrawFeePercent: (existing.withdrawFeePercent === 15.0 || existing.withdrawFeePercent === 15 || existing.withdrawFeePercent === undefined) ? 3.2 : existing.withdrawFeePercent
       };
@@ -252,8 +252,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       displayTotalMembers: stored?.displayTotalMembers || '67,000+',
       displayTotalDeposits: stored?.displayTotalDeposits || '৳21 Cr+',
       displayTotalWithdraws: stored?.displayTotalWithdraws || '৳122 Cr+',
-      referralBonusPerPlan: (stored?.referralBonusPerPlan === 40 || stored?.referralBonusPerPlan === 50 || !stored?.referralBonusPerPlan) ? 60 : stored.referralBonusPerPlan,
-      referralCommissionPercent: (stored?.referralCommissionPercent === 4.0 || !stored?.referralCommissionPercent) ? 5.0 : stored.referralCommissionPercent,
+      referralBonusPerPlan: (stored?.referralBonusPerPlan === 60 || !stored?.referralBonusPerPlan) ? 40 : stored.referralBonusPerPlan,
+      referralCommissionPercent: 5.0,
+      maxMemberLimit: typeof stored?.maxMemberLimit === 'number' ? stored.maxMemberLimit : 100000,
       isMaintenanceMode: typeof stored?.isMaintenanceMode === 'boolean' ? stored.isMaintenanceMode : false,
       maintenanceNotice: stored?.maintenanceNotice || DEFAULT_SETTINGS.maintenanceNotice,
       maintenanceEstimateTime: stored?.maintenanceEstimateTime || DEFAULT_SETTINGS.maintenanceEstimateTime
@@ -328,12 +329,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const unsubSettings = subscribeToSettings(
       (cloudGateways) => {
-        setGateways(cloudGateways);
-        setStorage(STORAGE_KEYS.GATEWAYS, cloudGateways);
+        if (cloudGateways) {
+          const upgraded: Record<string, GatewayConfigItem> = { ...cloudGateways };
+          Object.keys(upgraded).forEach(k => {
+            if (upgraded[k].minDeposit < 1000) upgraded[k].minDeposit = 1000;
+            if (upgraded[k].minWithdraw < 500) upgraded[k].minWithdraw = 500;
+          });
+          setGateways(upgraded);
+          setStorage(STORAGE_KEYS.GATEWAYS, upgraded);
+        }
       },
       (cloudSettings) => {
         setSettings(prev => {
-          const updated = { ...prev, ...cloudSettings };
+          const bonus = cloudSettings?.referralBonusPerPlan === 60 ? 40 : (cloudSettings?.referralBonusPerPlan ?? 40);
+          const comm = cloudSettings?.referralCommissionPercent ?? 5.0;
+          const memberLimit = typeof cloudSettings?.maxMemberLimit === 'number' ? cloudSettings.maxMemberLimit : (prev.maxMemberLimit ?? 100000);
+          const updated = { 
+            ...prev, 
+            ...cloudSettings,
+            referralBonusPerPlan: bonus,
+            referralCommissionPercent: comm,
+            maxMemberLimit: memberLimit
+          };
           setStorage(STORAGE_KEYS.SETTINGS, updated);
           return updated;
         });
@@ -506,6 +523,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (exists) {
       return { success: false, message: 'এই মোবাইল নাম্বার বা ইমেইল দিয়ে ইতিমধ্যে একাউন্ট খোলা হয়েছে।' };
+    }
+
+    // Check site member registration capacity limit (controlled by admin)
+    const currentMemberCount = userPool.filter(u => u.role !== 'admin').length;
+    const maxMembers = settings.maxMemberLimit ?? 100000;
+    if (maxMembers > 0 && currentMemberCount >= maxMembers) {
+      toast(`⚠️ সাইটের মেম্বার রেজিস্ট্রেশন লিমিট (${maxMembers.toLocaleString()} জন) পূর্ণ হয়ে গেছে! অনুগ্রহ করে অ্যাডমিনের সাথে যোগাযোগ করুন।`, 'error');
+      return { 
+        success: false, 
+        message: `সাইটের মেম্বার রেজিস্ট্রেশন ক্যাপাসিটি (${maxMembers.toLocaleString()} জন) পূর্ণ হয়ে গেছে। অনুগ্রহ করে অ্যাডমিনের সাথে যোগাযোগ করুন।` 
+      };
     }
 
     // Generate unique member code (e.g. micr879F70)
@@ -776,7 +804,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const isFirstPlan = !investments.some(inv => inv.userId === currentUser.id);
         const commissionPercent = typeof settings.referralCommissionPercent === 'number' ? settings.referralCommissionPercent : 5.0;
         const planCommission = Math.round((amount * (commissionPercent / 100)) * 100) / 100;
-        const firstTimeFixedBonus = isFirstPlan ? (settings.referralBonusPerPlan || 60) : 0;
+        const firstTimeFixedBonus = isFirstPlan ? (settings.referralBonusPerPlan || 40) : 0;
         const totalBonus = firstTimeFixedBonus + planCommission;
 
         setUsers(prev => prev.map(u => {
@@ -945,8 +973,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: false, message: `বর্তমানে ${gateway}-এ কোনো ডিপোজিট নম্বর যুক্ত নেই (ফাঁকা রয়েছে)। অনুগ্রহ করে bKash সিলেক্ট করে ডিপোজিট করুন অথবা অ্যাডমিনের সাথে যোগাযোগ করুন।` };
     }
 
-    if (amount < (gwConfig?.minDeposit || 500)) {
-      return { success: false, message: `${gateway}-এ সর্বনিম্ন ডিপোজিট ৳${gwConfig?.minDeposit || 500}` };
+    if (amount < (gwConfig?.minDeposit || 1000)) {
+      return { success: false, message: `${gateway}-এ সর্বনিম্ন ডিপোজিট ৳${gwConfig?.minDeposit || 1000}` };
     }
 
     if (amount > (gwConfig?.maxDeposit || 100000)) {
@@ -1004,11 +1032,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const gwConfig = gateways[gateway];
-    const minWth = gwConfig?.minWithdraw || 300;
+    const minWth = gwConfig?.minWithdraw || 500;
     const maxWth = gwConfig?.maxWithdraw || 25000;
 
     if (amount < minWth || amount > maxWth) {
-      return { success: false, message: `উত্তোলনের পরিমাণ ৳${minWth.toLocaleString()} থেকে ৳${maxWth.toLocaleString()}-এর মধ্যে হতে হবে।` };
+      return { success: false, message: `উত্তোলনের পরিমাণ ৳${minWth.toLocaleString()} থেকে ৳${maxWth.toLocaleString()}-এর মধ্যে হতে হবে (সর্বনিম্ন ৳৫০০)।` };
     }
 
     if (currentUser.walletBalance < amount) {

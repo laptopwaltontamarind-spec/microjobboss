@@ -1042,7 +1042,7 @@ export const AdminPortal: React.FC = () => {
                       <label className="block text-[10px] font-semibold text-slate-400 mb-1">Min Withdraw (৳)</label>
                       <input
                         type="number"
-                        value={gw.minWithdraw || 300}
+                        value={gw.minWithdraw || 500}
                         onChange={(e) => updateGatewayConfig(gwKey, { minWithdraw: Number(e.target.value) })}
                         className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-100"
                       />
@@ -2007,6 +2007,110 @@ export const AdminPortal: React.FC = () => {
                   placeholder="৳122 Cr+ / 122 কোটি"
                   className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-slate-100 font-mono focus:border-rose-500 focus:outline-none"
                 />
+              </div>
+            </div>
+
+            {/* Member Capacity & Registration Limit Controller */}
+            <div className="p-4 bg-slate-950/90 border-2 border-indigo-500/40 rounded-2xl space-y-3.5 shadow-xl">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <div className="flex items-center gap-2 text-indigo-400 font-bold text-sm">
+                  <Users className="w-4 h-4" />
+                  <span>Site Member Registration Limit (মেম্বার লিমিট কন্ট্রোল)</span>
+                </div>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 font-mono">
+                  CAPACITY CONTROL
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                অ্যাডমিন এখান থেকে সাইটের সর্বোচ্চ মেম্বার লিমিট বাড়াতে বা কমাতে পারবেন। লিমিট পূর্ণ হলে নতুন মেম্বার রেজিস্ট্রেশন স্বয়ংক্রিয়ভাবে ব্লক থাকবে।
+              </p>
+
+              {/* Stats & Capacity Progress */}
+              <div className="grid grid-cols-2 gap-3 bg-slate-900/90 p-3 rounded-xl border border-slate-800 font-mono">
+                <div>
+                  <span className="text-[10px] text-slate-400 block">বর্তমান রেজিস্টার্ড মেম্বার</span>
+                  <span className="text-sm font-black text-slate-100">
+                    {users.filter(u => u.role !== 'admin').length.toLocaleString()} জন
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block">সর্বোচ্চ ক্যাপাসিটি লিমিট</span>
+                  <span className="text-sm font-black text-indigo-400">
+                    {(settings.maxMemberLimit ?? 100000).toLocaleString()} জন
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                  <span>ক্যাপাসিটি পূরণ:</span>
+                  <span className="font-mono text-indigo-300 font-bold">
+                    {Math.min(100, Math.round((users.filter(u => u.role !== 'admin').length / Math.max(1, settings.maxMemberLimit ?? 100000)) * 100))}%
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full transition-all"
+                    style={{
+                      width: `${Math.min(100, Math.max(1, Math.round((users.filter(u => u.role !== 'admin').length / Math.max(1, settings.maxMemberLimit ?? 100000)) * 100)))}%`
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Quick Increase / Decrease Buttons */}
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1.5">
+                  দ্রুত লিমিট বৃদ্ধি বা কমান (Quick Adjust):
+                </label>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 font-mono text-xs">
+                  {[-1000, -500, -100, 100, 500, 1000].map((delta) => (
+                    <button
+                      key={delta}
+                      type="button"
+                      onClick={() => {
+                        const current = settings.maxMemberLimit ?? 100000;
+                        const next = Math.max(100, current + delta);
+                        updateSettings({ maxMemberLimit: next });
+                      }}
+                      className={`py-1.5 px-2 rounded-lg font-bold border transition-all cursor-pointer text-center ${
+                        delta < 0 
+                          ? 'bg-rose-500/10 border-rose-500/30 text-rose-300 hover:bg-rose-500/20' 
+                          : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20'
+                      }`}
+                    >
+                      {delta > 0 ? `+${delta}` : delta}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Direct Custom Input */}
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                  কাস্টম মেম্বার লিমিট সংখ্যা লিখুন (Max Member Limit):
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    min={100}
+                    step={100}
+                    value={settings.maxMemberLimit ?? 100000}
+                    onChange={(e) => updateSettings({ maxMemberLimit: Math.max(0, Number(e.target.value)) })}
+                    placeholder="100000"
+                    className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 font-mono focus:border-indigo-500 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => toast(`মেম্বার লিমিট ${(settings.maxMemberLimit ?? 100000).toLocaleString()} সেভ হয়েছে`, 'success')}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs cursor-pointer"
+                  >
+                    Save
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  ✓ অ্যাডমিন যেকোনো সময় লিমিট বাড়িয়ে বা কমিয়ে রেজিস্ট্রেশন নিয়ন্ত্রণ করতে পারেন।
+                </p>
               </div>
             </div>
 
