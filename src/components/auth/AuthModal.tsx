@@ -51,7 +51,7 @@ export const AuthModal: React.FC = () => {
   const [loginPassword, setLoginPassword] = useState('');
 
   // Admin login state
-  const [adminIdentifier, setAdminIdentifier] = useState('adminSHYKOT@gmail.com');
+  const [adminIdentifier, setAdminIdentifier] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
 
   // Reset state
@@ -376,7 +376,7 @@ export const AuthModal: React.FC = () => {
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-amber-500 font-mono transition-colors"
                   />
                 </div>
-                <p className="text-[10px] text-slate-500 mt-1">Get ৳50 plan purchase bonus credited to your upline referrer.</p>
+                <p className="text-[10px] text-slate-500 mt-1">Get ৳60 plan purchase bonus credited to your upline referrer.</p>
               </div>
 
               <button
@@ -509,7 +509,8 @@ export const AuthModal: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="admin@microjobboss.com"
+                    autoComplete="off"
+                    placeholder="Enter admin email, phone or staff ID"
                     value={adminIdentifier}
                     onChange={(e) => setAdminIdentifier(e.target.value)}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-rose-500 transition-colors"
@@ -526,6 +527,7 @@ export const AuthModal: React.FC = () => {
                   <input
                     type={showAdminPassword ? 'text' : 'password'}
                     required
+                    autoComplete="new-password"
                     placeholder="Enter security password"
                     value={adminPassword}
                     onChange={(e) => setAdminPassword(e.target.value)}

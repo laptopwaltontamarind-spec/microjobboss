@@ -41,7 +41,7 @@ export interface MiningPlan {
   id: string;
   name: string;
   dailyRoiPercent: number; // 8.5%
-  minDeposit: number; // ৳300
+  minDeposit: number; // ৳500
   maxDeposit: number; // ৳100,000
   durationDays: number; // 30
   badge: string;
@@ -188,8 +188,8 @@ export interface PlatformSettings {
   displayTotalMembers?: string; // e.g. "67,000+"
   displayTotalDeposits?: string; // e.g. "৳21 Cr+"
   displayTotalWithdraws?: string; // e.g. "৳122 Cr+"
-  referralBonusPerPlan: number; // ৳40 direct commission on first plan
-  referralCommissionPercent: number; // 4% upline commission on every plan buy/renewal
+  referralBonusPerPlan: number; // ৳60 direct commission on first plan
+  referralCommissionPercent: number; // 5% upline commission on every plan buy/renewal
   telegramSupportUrl: string;
   whatsappSupportUrl: string;
   helplinePhone: string;

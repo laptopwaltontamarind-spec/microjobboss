@@ -17,31 +17,31 @@ export const DEFAULT_MINING_PLANS: MiningPlan[] = [
     id: 'plan_standard_12',
     name: 'Standard Mining Plan',
     dailyRoiPercent: 8.5,
-    minDeposit: 300,
+    minDeposit: 500,
     maxDeposit: 100000,
     durationDays: 30,
     badge: 'HOT POPULAR',
     description: 'Earn 8.5% daily guaranteed mining profit for 30 days. Auto payout every 24 hours directly to your main wallet balance.',
     features: [
       'Daily 8.50% Auto Return',
-      'Min: ৳300 - Max: ৳1,00,000',
+      'Min: ৳500 - Max: ৳1,00,000',
       '30-Day Lock Period with Auto Payout',
       'Re-invest option upon maturity',
       'Instant Claim / 24h Countdown Cycle',
-      '৳40 First Plan Bonus + 4% Lifetime Commission'
+      '৳60 First Plan Bonus + 5% Lifetime Commission'
     ]
   },
   {
     id: 'plan_starter_micro',
     name: 'Starter Micro Mining',
     dailyRoiPercent: 8.5,
-    minDeposit: 300,
-    maxDeposit: 1000,
+    minDeposit: 500,
+    maxDeposit: 5000,
     durationDays: 30,
     badge: 'BEGINNER FRIENDLY',
-    description: 'Perfect for first-time users. Test the mining power with as low as ৳300.',
+    description: 'Perfect for first-time users. Test the mining power with as low as ৳500.',
     features: [
-      'Daily 8.50% Return (৳25.5 - ৳85 / day)',
+      'Daily 8.50% Return (৳42.5 - ৳425 / day)',
       '30 Days Active Yield Duration',
       'Instant bKash/Nagad/Rocket/mCash Cashout',
       'Low 3.2% withdrawal processing fee'
@@ -71,7 +71,7 @@ export const DEFAULT_GATEWAYS: Record<string, GatewayConfigItem> = {
     name: 'bKash Personal / Send Money',
     accountNumber: '01821192590',
     accountType: 'Personal',
-    minDeposit: 300,
+    minDeposit: 500,
     maxDeposit: 100000,
     minWithdraw: 300,
     maxWithdraw: 25000,
@@ -86,7 +86,7 @@ export const DEFAULT_GATEWAYS: Record<string, GatewayConfigItem> = {
     name: 'Nagad Personal / Send Money',
     accountNumber: '',
     accountType: 'Personal',
-    minDeposit: 300,
+    minDeposit: 500,
     maxDeposit: 100000,
     minWithdraw: 300,
     maxWithdraw: 25000,
@@ -101,7 +101,7 @@ export const DEFAULT_GATEWAYS: Record<string, GatewayConfigItem> = {
     name: 'Dutch-Bangla Rocket Personal',
     accountNumber: '',
     accountType: 'Personal',
-    minDeposit: 300,
+    minDeposit: 500,
     maxDeposit: 100000,
     minWithdraw: 300,
     maxWithdraw: 25000,
@@ -116,7 +116,7 @@ export const DEFAULT_GATEWAYS: Record<string, GatewayConfigItem> = {
     name: 'Islami Bank mCash',
     accountNumber: '',
     accountType: 'Personal',
-    minDeposit: 300,
+    minDeposit: 500,
     maxDeposit: 100000,
     minWithdraw: 300,
     maxWithdraw: 25000,
@@ -218,12 +218,12 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
   displayTotalMembers: '67,000+',
   displayTotalDeposits: '৳21 Cr+',
   displayTotalWithdraws: '৳122 Cr+',
-  referralBonusPerPlan: 40, // ৳40 direct commission on first plan
-  referralCommissionPercent: 4.0, // 4% upline commission on all plan purchases
+  referralBonusPerPlan: 60, // ৳60 direct commission on first plan
+  referralCommissionPercent: 5.0, // 5% upline commission on all plan purchases
   telegramSupportUrl: 'https://t.me/microjobboss_official',
   whatsappSupportUrl: 'https://wa.me/8801700000000',
   helplinePhone: '+880 1700-000000',
-  announcementNotice: '🔥 Welcome to MICROJOBBOSS! Enjoy 8.5% daily return with 30-day continuous mining cycle. Instant bKash, Nagad, Rocket, mCash cashouts 24/7! Refer friends and earn ৳40 instant bonus + 4% lifetime plan commission.',
+  announcementNotice: '🔥 Welcome to MICROJOBBOSS! Enjoy 8.5% daily return with 30-day continuous mining cycle. Instant bKash, Nagad, Rocket, mCash cashouts 24/7! Refer friends and earn ৳60 instant bonus + 5% lifetime plan commission.',
   isMaintenanceMode: false,
   maintenanceNotice: 'সাইটের সিস্টেম আপডেট ও সার্ভার মেইনটেন্যান্স এর কাজ চলতেছে, কিছুক্ষণ অপেক্ষা করুন। খুব শীঘ্রই সাইট পুনরায় সচল হবে। সাময়িক অসুবিধার জন্য আমরা আন্তরিকভাবে দুঃখিত।',
   maintenanceEstimateTime: '15-30 মিনিট'

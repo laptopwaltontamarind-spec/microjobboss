@@ -2042,12 +2042,12 @@ export const AdminPortal: React.FC = () => {
               <input
                 type="number"
                 step="0.5"
-                value={settings.referralCommissionPercent || 4}
+                value={settings.referralCommissionPercent || 5}
                 onChange={(e) => updateSettings({ referralCommissionPercent: Number(e.target.value) })}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100 font-mono"
               />
               <p className="text-[10px] text-emerald-400 mt-1">
-                ✓ ডাউনলাইন যেকোনো সময় যেকোনো অ্যামাউন্টের প্ল্যান কিনলে বা ৩০ দিন পর রিনিউ করলে রেফারার/আপলাইন প্ল্যানের {settings.referralCommissionPercent || 4}% কমিশন পাবে।
+                ✓ ডাউনলাইন যেকোনো সময় যেকোনো অ্যামাউন্টের প্ল্যান কিনলে বা ৩০ দিন পর রিনিউ করলে রেফারার/আপলাইন প্ল্যানের {settings.referralCommissionPercent || 5}% কমিশন পাবে।
               </p>
             </div>
 

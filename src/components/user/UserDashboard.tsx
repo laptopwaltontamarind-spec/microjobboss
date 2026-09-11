@@ -348,7 +348,7 @@ export const UserDashboard: React.FC = () => {
                   }`}
                 >
                   <Share2 className="w-4 h-4" />
-                  <span>Referlink & MLM (৳{settings.referralBonusPerPlan === 40 ? '৪০' : settings.referralBonusPerPlan} বোনাস)</span>
+                  <span>Referlink & MLM (৳{settings.referralBonusPerPlan || 60} বোনাস + {settings.referralCommissionPercent || 5}%)</span>
                 </button>
 
                 <button
@@ -654,11 +654,11 @@ export const UserDashboard: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                        Investment Amount (৳300 - ৳1,00,000)
+                        Investment Amount (৳500 - ৳1,00,000)
                       </label>
                       <input
                         type="number"
-                        min={300}
+                        min={500}
                         max={100000}
                         step={100}
                         required
@@ -782,11 +782,11 @@ export const UserDashboard: React.FC = () => {
                   <form onSubmit={handleDepositSubmit} className="space-y-3.5">
                     <div>
                       <label className="block text-xs font-semibold text-slate-300 mb-1">
-                        Deposit Amount (৳৩০০ – ৳১,০০,০০০)
+                        Deposit Amount (৳৫০০ – ৳১,০০,০০০)
                       </label>
                       <input
                         type="number"
-                        min={gateways[selectedDepositGateway]?.minDeposit || 300}
+                        min={gateways[selectedDepositGateway]?.minDeposit || 500}
                         max={gateways[selectedDepositGateway]?.maxDeposit || 100000}
                         required
                         value={depositAmount}
@@ -1044,7 +1044,7 @@ export const UserDashboard: React.FC = () => {
                     <Share2 className="w-5 h-5 text-amber-400" />
                     <div>
                       <h3 className="font-bold text-sm text-slate-100">MLM Referral System & Commission</h3>
-                      <p className="text-[11px] text-slate-400">Earn ৳{settings.referralBonusPerPlan || 40} direct bonus on 1st plan purchase + {settings.referralCommissionPercent || 4}% lifetime commission on every plan buy & renewal!</p>
+                      <p className="text-[11px] text-slate-400">Earn ৳{settings.referralBonusPerPlan || 60} direct bonus on 1st plan purchase + {settings.referralCommissionPercent || 5}% lifetime commission on every plan buy & renewal!</p>
                     </div>
                   </div>
                 </div>
@@ -1084,7 +1084,7 @@ export const UserDashboard: React.FC = () => {
                     </div>
                     <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 col-span-2 sm:col-span-1">
                       <span className="text-[10px] text-slate-500 block">Plan Buy Commission</span>
-                      <span className="font-bold text-emerald-400 text-base">৳{settings.referralBonusPerPlan || 40} + {settings.referralCommissionPercent || 4}%</span>
+                      <span className="font-bold text-emerald-400 text-base">৳{settings.referralBonusPerPlan || 60} + {settings.referralCommissionPercent || 5}%</span>
                     </div>
                   </div>
                 </div>
@@ -1097,7 +1097,7 @@ export const UserDashboard: React.FC = () => {
 
                   {downlineUsers.length === 0 ? (
                     <div className="text-center py-6 text-xs text-slate-500 bg-slate-950/60 rounded-xl border border-dashed border-slate-800">
-                      No members registered under your link yet. Share your code to earn ৳{settings.referralBonusPerPlan || 40} bonus + {settings.referralCommissionPercent || 4}% commission on every plan!
+                      No members registered under your link yet. Share your code to earn ৳{settings.referralBonusPerPlan || 60} bonus + {settings.referralCommissionPercent || 5}% commission on every plan!
                     </div>
                   ) : (
                     <div className="space-y-2">

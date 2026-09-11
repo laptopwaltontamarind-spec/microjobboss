@@ -121,7 +121,7 @@ export const LandingPage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4 text-amber-400" />
-                  <span>৳{settings.referralBonusPerPlan || 40} Instant Refer Bonus</span>
+                  <span>৳{settings.referralBonusPerPlan || 60} Instant Refer Bonus</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4 text-sky-400" />
@@ -159,23 +159,23 @@ export const LandingPage: React.FC = () => {
                     </div>
                     <input
                       type="range"
-                      min={300}
-                      max={50000}
+                      min={500}
+                      max={100000}
                       step={100}
                       value={calcAmount}
                       onChange={(e) => setCalcAmount(Number(e.target.value))}
                       className="w-full h-2 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-amber-500"
                     />
                     <div className="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
-                      <span>Min: ৳300</span>
+                      <span>Min: ৳500</span>
                       <span>৳10,000</span>
-                      <span>Max: ৳50,000</span>
+                      <span>Max: ৳1,00,000</span>
                     </div>
                   </div>
 
                   {/* Quick Select Buttons */}
                   <div className="grid grid-cols-4 gap-2">
-                    {[300, 1000, 2000, 5000].map((amt) => (
+                    {[500, 1000, 2000, 5000].map((amt) => (
                       <button
                         key={amt}
                         type="button"
@@ -399,7 +399,7 @@ export const LandingPage: React.FC = () => {
               </div>
               <p className="text-xs text-slate-300">Fast send money with instant TrxID validation.</p>
               <div className="mt-4 pt-3 border-t border-[#E2136E]/20 text-[11px] font-mono text-slate-400 space-y-1">
-                <p>Min Deposit: ৳100</p>
+                <p>Min Deposit: ৳500</p>
                 <p>Withdraw Speed: 5-15 Mins</p>
               </div>
             </div>
@@ -412,7 +412,7 @@ export const LandingPage: React.FC = () => {
               </div>
               <p className="text-xs text-slate-300">Lowest fee mobile wallet with instant cashout.</p>
               <div className="mt-4 pt-3 border-t border-[#F7941D]/20 text-[11px] font-mono text-slate-400 space-y-1">
-                <p>Min Deposit: ৳100</p>
+                <p>Min Deposit: ৳500</p>
                 <p>Withdraw Speed: 5-15 Mins</p>
               </div>
             </div>
@@ -425,7 +425,7 @@ export const LandingPage: React.FC = () => {
               </div>
               <p className="text-xs text-slate-300">12-digit DBBL Rocket personal send money.</p>
               <div className="mt-4 pt-3 border-t border-[#8C3494]/20 text-[11px] font-mono text-slate-400 space-y-1">
-                <p>Min Deposit: ৳100</p>
+                <p>Min Deposit: ৳500</p>
                 <p>Withdraw Speed: 5-15 Mins</p>
               </div>
             </div>
@@ -438,7 +438,7 @@ export const LandingPage: React.FC = () => {
               </div>
               <p className="text-xs text-slate-300">Islami Bank Bangladesh Limited mobile banking.</p>
               <div className="mt-4 pt-3 border-t border-[#00833E]/20 text-[11px] font-mono text-slate-400 space-y-1">
-                <p>Min Deposit: ৳100</p>
+                <p>Min Deposit: ৳500</p>
                 <p>Withdraw Speed: 5-15 Mins</p>
               </div>
             </div>
@@ -458,21 +458,21 @@ export const LandingPage: React.FC = () => {
                 </div>
 
                 <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-100">
-                  Earn ৳{settings.referralBonusPerPlan || 40} Instant Bonus + {settings.referralCommissionPercent || 4}% Lifetime Plan Commission!
+                  Earn ৳{settings.referralBonusPerPlan || 60} Instant Bonus + {settings.referralCommissionPercent || 5}% Lifetime Plan Commission!
                 </h2>
 
                 <p className="text-slate-300 text-sm leading-relaxed max-w-2xl">
-                  Share your unique referral link (e.g. <span className="font-mono text-amber-400 font-bold">microjobboss.com/register?ref=micr879F70</span>). Whenever someone joins and buys their 1st mining plan, you immediately get <strong className="text-white">৳{settings.referralBonusPerPlan || 40} instant bonus + {settings.referralCommissionPercent || 4}% plan commission</strong>. Plus, every time they re-purchase or renew any plan, you continuously earn <strong className="text-amber-400">{settings.referralCommissionPercent || 4}% cash commission</strong> directly to your wallet!
+                  Share your unique referral link (e.g. <span className="font-mono text-amber-400 font-bold">microjobboss.com/register?ref=micr879F70</span>). Whenever someone joins and buys their 1st mining plan, you immediately get <strong className="text-white">৳{settings.referralBonusPerPlan || 60} instant bonus + {settings.referralCommissionPercent || 5}% plan commission</strong>. Plus, every time they re-purchase or renew any plan, you continuously earn <strong className="text-amber-400">{settings.referralCommissionPercent || 5}% cash commission</strong> directly to your wallet!
                 </p>
 
                 <div className="flex flex-wrap gap-4 pt-2">
                   <div className="bg-slate-950/80 border border-slate-800 px-4 py-2.5 rounded-xl font-mono text-xs">
                     <span className="text-slate-400">1st Plan Bonus: </span>
-                    <span className="text-amber-400 font-bold">৳{settings.referralBonusPerPlan || 40} / Member</span>
+                    <span className="text-amber-400 font-bold">৳{settings.referralBonusPerPlan || 60} / Member</span>
                   </div>
                   <div className="bg-slate-950/80 border border-slate-800 px-4 py-2.5 rounded-xl font-mono text-xs">
                     <span className="text-slate-400">Plan Commission: </span>
-                    <span className="text-emerald-400 font-bold">{settings.referralCommissionPercent || 4}% (Every Plan & Renewal)</span>
+                    <span className="text-emerald-400 font-bold">{settings.referralCommissionPercent || 5}% (Every Plan & Renewal)</span>
                   </div>
                 </div>
               </div>

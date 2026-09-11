@@ -234,7 +234,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ...DEFAULT_GATEWAYS[key],
         ...existing,
         accountNumber: accNum,
-        minDeposit: existing.minDeposit < 300 ? 300 : existing.minDeposit,
+        minDeposit: existing.minDeposit < 500 ? 500 : existing.minDeposit,
+        maxDeposit: existing.maxDeposit || 100000,
         minWithdraw: (existing.minWithdraw === 150 || !existing.minWithdraw) ? 300 : existing.minWithdraw,
         maxWithdraw: (existing.maxWithdraw === 50000 || !existing.maxWithdraw) ? 25000 : existing.maxWithdraw,
         withdrawFeePercent: (existing.withdrawFeePercent === 15.0 || existing.withdrawFeePercent === 15 || existing.withdrawFeePercent === undefined) ? 3.2 : existing.withdrawFeePercent
@@ -251,8 +252,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       displayTotalMembers: stored?.displayTotalMembers || '67,000+',
       displayTotalDeposits: stored?.displayTotalDeposits || '৳21 Cr+',
       displayTotalWithdraws: stored?.displayTotalWithdraws || '৳122 Cr+',
-      referralBonusPerPlan: (stored?.referralBonusPerPlan === 50 || !stored?.referralBonusPerPlan) ? 40 : stored.referralBonusPerPlan,
-      referralCommissionPercent: typeof stored?.referralCommissionPercent === 'number' ? stored.referralCommissionPercent : 4.0,
+      referralBonusPerPlan: (stored?.referralBonusPerPlan === 40 || stored?.referralBonusPerPlan === 50 || !stored?.referralBonusPerPlan) ? 60 : stored.referralBonusPerPlan,
+      referralCommissionPercent: (stored?.referralCommissionPercent === 4.0 || !stored?.referralCommissionPercent) ? 5.0 : stored.referralCommissionPercent,
       isMaintenanceMode: typeof stored?.isMaintenanceMode === 'boolean' ? stored.isMaintenanceMode : false,
       maintenanceNotice: stored?.maintenanceNotice || DEFAULT_SETTINGS.maintenanceNotice,
       maintenanceEstimateTime: stored?.maintenanceEstimateTime || DEFAULT_SETTINGS.maintenanceEstimateTime
@@ -767,15 +768,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAuditLogs(prev => [purchaseAudit, ...prev]);
     firestoreSaveAuditLog(purchaseAudit);
 
-    // MLM Referral bonus & 4% plan commission distribution
+    // MLM Referral bonus & 5% plan commission distribution
     if (currentUser.referredBy) {
       const referrer = users.find(u => u.memberCode === currentUser.referredBy || u.referralCode === currentUser.referredBy);
       if (referrer) {
         // Check if this is the downline user's first plan or a subsequent re-purchase / renewal
         const isFirstPlan = !investments.some(inv => inv.userId === currentUser.id);
-        const commissionPercent = typeof settings.referralCommissionPercent === 'number' ? settings.referralCommissionPercent : 4.0;
+        const commissionPercent = typeof settings.referralCommissionPercent === 'number' ? settings.referralCommissionPercent : 5.0;
         const planCommission = Math.round((amount * (commissionPercent / 100)) * 100) / 100;
-        const firstTimeFixedBonus = isFirstPlan ? (settings.referralBonusPerPlan || 40) : 0;
+        const firstTimeFixedBonus = isFirstPlan ? (settings.referralBonusPerPlan || 60) : 0;
         const totalBonus = firstTimeFixedBonus + planCommission;
 
         setUsers(prev => prev.map(u => {
@@ -798,14 +799,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           type: 'referral_bonus',
           title: isFirstPlan 
             ? `Referral Bonus (৳${totalBonus})`
-            : `Referral 4% Commission (৳${totalBonus})`,
+            : `Referral ${commissionPercent}% Commission (৳${totalBonus})`,
           amount: totalBonus,
           isCredit: true,
           balanceBefore: referrer.walletBalance,
           balanceAfter: referrer.walletBalance + totalBonus,
           description: isFirstPlan
-            ? `Direct ৳${firstTimeFixedBonus} 1st-plan bonus + 4% plan commission (৳${planCommission}) from downline ${currentUser.memberCode} plan purchase (৳${amount.toLocaleString()})`
-            : `4% commission (৳${planCommission}) from downline ${currentUser.memberCode} re-purchase / renewal plan (৳${amount.toLocaleString()})`,
+            ? `Direct ৳${firstTimeFixedBonus} 1st-plan bonus + ${commissionPercent}% plan commission (৳${planCommission}) from downline ${currentUser.memberCode} plan purchase (৳${amount.toLocaleString()})`
+            : `${commissionPercent}% commission (৳${planCommission}) from downline ${currentUser.memberCode} re-purchase / renewal plan (৳${amount.toLocaleString()})`,
           timestamp: new Date().toISOString()
         };
         setAuditLogs(prev => [refAudit, ...prev]);
@@ -944,8 +945,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: false, message: `বর্তমানে ${gateway}-এ কোনো ডিপোজিট নম্বর যুক্ত নেই (ফাঁকা রয়েছে)। অনুগ্রহ করে bKash সিলেক্ট করে ডিপোজিট করুন অথবা অ্যাডমিনের সাথে যোগাযোগ করুন।` };
     }
 
-    if (amount < (gwConfig?.minDeposit || 300)) {
-      return { success: false, message: `${gateway}-এ সর্বনিম্ন ডিপোজিট ৳${gwConfig?.minDeposit || 300}` };
+    if (amount < (gwConfig?.minDeposit || 500)) {
+      return { success: false, message: `${gateway}-এ সর্বনিম্ন ডিপোজিট ৳${gwConfig?.minDeposit || 500}` };
+    }
+
+    if (amount > (gwConfig?.maxDeposit || 100000)) {
+      return { success: false, message: `${gateway}-এ সর্বোচ্চ ডিপোজিট ৳${(gwConfig?.maxDeposit || 100000).toLocaleString()}` };
     }
 
     // Strict duplicate check across all previous deposits
