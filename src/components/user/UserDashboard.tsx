@@ -67,7 +67,7 @@ export const UserDashboard: React.FC = () => {
 
   // Withdraw Form State
   const [selectedWithdrawGateway, setSelectedWithdrawGateway] = useState<GatewayType>('bKash');
-  const [withdrawAmount, setWithdrawAmount] = useState<number>(500);
+  const [withdrawAmount, setWithdrawAmount] = useState<number>(1000);
   const [withdrawRecipientNumber, setWithdrawRecipientNumber] = useState<string>(currentUser?.phone || '');
 
   // Plan Purchase Modal / State
@@ -940,11 +940,11 @@ export const UserDashboard: React.FC = () => {
                   <form onSubmit={handleWithdrawSubmit} className="space-y-3.5">
                     <div>
                       <label className="block text-xs font-semibold text-slate-300 mb-1">
-                        Withdraw Amount (Min: ৳500 - Max: ৳25,000)
+                        Withdraw Amount (Min: ৳{gateways[selectedWithdrawGateway]?.minWithdraw || 1000} - Max: ৳{gateways[selectedWithdrawGateway]?.maxWithdraw?.toLocaleString() || '25,000'})
                       </label>
                       <input
                         type="number"
-                        min={gateways[selectedWithdrawGateway]?.minWithdraw || 500}
+                        min={gateways[selectedWithdrawGateway]?.minWithdraw || 1000}
                         max={gateways[selectedWithdrawGateway]?.maxWithdraw || 25000}
                         required
                         value={withdrawAmount}
@@ -974,12 +974,12 @@ export const UserDashboard: React.FC = () => {
                         <span>৳{withdrawAmount.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between text-slate-400">
-                        <span>Withdraw Charge ({gateways[selectedWithdrawGateway]?.withdrawFeePercent ?? 3.2}%):</span>
-                        <span className="text-rose-400">-৳{(withdrawAmount * ((gateways[selectedWithdrawGateway]?.withdrawFeePercent ?? 3.2) / 100)).toFixed(2)}</span>
+                        <span>Withdraw Charge ({gateways[selectedWithdrawGateway]?.withdrawFeePercent ?? 5.0}%):</span>
+                        <span className="text-rose-400">-৳{(withdrawAmount * ((gateways[selectedWithdrawGateway]?.withdrawFeePercent ?? 5.0) / 100)).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-slate-200 font-bold pt-1 border-t border-slate-800">
                         <span>You will receive:</span>
-                        <span className="text-emerald-400">৳{(withdrawAmount * (1 - (gateways[selectedWithdrawGateway]?.withdrawFeePercent ?? 3.2) / 100)).toFixed(2)}</span>
+                        <span className="text-emerald-400">৳{(withdrawAmount * (1 - (gateways[selectedWithdrawGateway]?.withdrawFeePercent ?? 5.0) / 100)).toFixed(2)}</span>
                       </div>
                     </div>
 

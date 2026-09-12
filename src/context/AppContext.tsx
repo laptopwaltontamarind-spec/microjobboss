@@ -236,9 +236,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         accountNumber: accNum,
         minDeposit: existing.minDeposit < 1000 ? 1000 : existing.minDeposit,
         maxDeposit: existing.maxDeposit || 100000,
-        minWithdraw: (existing.minWithdraw < 500 || !existing.minWithdraw) ? 500 : existing.minWithdraw,
+        minWithdraw: (existing.minWithdraw < 1000 || !existing.minWithdraw) ? 1000 : existing.minWithdraw,
         maxWithdraw: (existing.maxWithdraw === 50000 || !existing.maxWithdraw) ? 25000 : existing.maxWithdraw,
-        withdrawFeePercent: (existing.withdrawFeePercent === 15.0 || existing.withdrawFeePercent === 15 || existing.withdrawFeePercent === undefined) ? 3.2 : existing.withdrawFeePercent
+        withdrawFeePercent: (existing.withdrawFeePercent === 15.0 || existing.withdrawFeePercent === 15 || existing.withdrawFeePercent === 3.2 || existing.withdrawFeePercent === undefined) ? 5.0 : existing.withdrawFeePercent
       };
     });
     return upgraded;
@@ -333,7 +333,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const upgraded: Record<string, GatewayConfigItem> = { ...cloudGateways };
           Object.keys(upgraded).forEach(k => {
             if (upgraded[k].minDeposit < 1000) upgraded[k].minDeposit = 1000;
-            if (upgraded[k].minWithdraw < 500) upgraded[k].minWithdraw = 500;
+            if (upgraded[k].minWithdraw < 1000) upgraded[k].minWithdraw = 1000;
+            if (!upgraded[k].withdrawFeePercent || upgraded[k].withdrawFeePercent === 3.2) upgraded[k].withdrawFeePercent = 5.0;
           });
           setGateways(upgraded);
           setStorage(STORAGE_KEYS.GATEWAYS, upgraded);
@@ -1032,18 +1033,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const gwConfig = gateways[gateway];
-    const minWth = gwConfig?.minWithdraw || 500;
+    const minWth = gwConfig?.minWithdraw || 1000;
     const maxWth = gwConfig?.maxWithdraw || 25000;
 
     if (amount < minWth || amount > maxWth) {
-      return { success: false, message: `উত্তোলনের পরিমাণ ৳${minWth.toLocaleString()} থেকে ৳${maxWth.toLocaleString()}-এর মধ্যে হতে হবে (সর্বনিম্ন ৳৫০০)।` };
+      return { success: false, message: `উত্তোলনের পরিমাণ ৳${minWth.toLocaleString()} থেকে ৳${maxWth.toLocaleString()}-এর মধ্যে হতে হবে (সর্বনিম্ন ৳${minWth.toLocaleString()})।` };
     }
 
     if (currentUser.walletBalance < amount) {
       return { success: false, message: `অপর্যাপ্ত ব্যালেন্স! আপনার বর্তমান ব্যালেন্স ৳${currentUser.walletBalance.toLocaleString()}` };
     }
 
-    const feePercent = gwConfig?.withdrawFeePercent ?? 3.2;
+    const feePercent = gwConfig?.withdrawFeePercent ?? 5.0;
     const fee = Math.round((amount * (feePercent / 100)) * 100) / 100;
     const netAmount = Math.round((amount - fee) * 100) / 100;
 

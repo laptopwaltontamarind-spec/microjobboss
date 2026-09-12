@@ -1042,7 +1042,7 @@ export const AdminPortal: React.FC = () => {
                       <label className="block text-[10px] font-semibold text-slate-400 mb-1">Min Withdraw (৳)</label>
                       <input
                         type="number"
-                        value={gw.minWithdraw || 500}
+                        value={gw.minWithdraw || 1000}
                         onChange={(e) => updateGatewayConfig(gwKey, { minWithdraw: Number(e.target.value) })}
                         className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-100"
                       />
@@ -1061,7 +1061,7 @@ export const AdminPortal: React.FC = () => {
                       <input
                         type="number"
                         step="0.1"
-                        value={gw.withdrawFeePercent ?? 3.2}
+                        value={gw.withdrawFeePercent ?? 5.0}
                         onChange={(e) => updateGatewayConfig(gwKey, { withdrawFeePercent: Number(e.target.value) })}
                         className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-100"
                       />

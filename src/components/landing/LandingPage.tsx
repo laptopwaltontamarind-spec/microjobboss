@@ -399,7 +399,7 @@ export const LandingPage: React.FC = () => {
               </div>
               <p className="text-xs text-slate-300">Fast send money with instant TrxID validation.</p>
               <div className="mt-4 pt-3 border-t border-[#E2136E]/20 text-[11px] font-mono text-slate-400 space-y-1">
-                <p>Min Deposit: ৳1,000 | Min Withdraw: ৳500</p>
+                <p>Min Deposit: ৳1,000 | Min Withdraw: ৳1,000</p>
                 <p>Withdraw Speed: 5-15 Mins</p>
               </div>
             </div>
@@ -412,7 +412,7 @@ export const LandingPage: React.FC = () => {
               </div>
               <p className="text-xs text-slate-300">Lowest fee mobile wallet with instant cashout.</p>
               <div className="mt-4 pt-3 border-t border-[#F7941D]/20 text-[11px] font-mono text-slate-400 space-y-1">
-                <p>Min Deposit: ৳1,000 | Min Withdraw: ৳500</p>
+                <p>Min Deposit: ৳1,000 | Min Withdraw: ৳1,000</p>
                 <p>Withdraw Speed: 5-15 Mins</p>
               </div>
             </div>
@@ -425,7 +425,7 @@ export const LandingPage: React.FC = () => {
               </div>
               <p className="text-xs text-slate-300">12-digit DBBL Rocket personal send money.</p>
               <div className="mt-4 pt-3 border-t border-[#8C3494]/20 text-[11px] font-mono text-slate-400 space-y-1">
-                <p>Min Deposit: ৳1,000 | Min Withdraw: ৳500</p>
+                <p>Min Deposit: ৳1,000 | Min Withdraw: ৳1,000</p>
                 <p>Withdraw Speed: 5-15 Mins</p>
               </div>
             </div>
@@ -438,7 +438,7 @@ export const LandingPage: React.FC = () => {
               </div>
               <p className="text-xs text-slate-300">Islami Bank Bangladesh Limited mobile banking.</p>
               <div className="mt-4 pt-3 border-t border-[#00833E]/20 text-[11px] font-mono text-slate-400 space-y-1">
-                <p>Min Deposit: ৳1,000 | Min Withdraw: ৳500</p>
+                <p>Min Deposit: ৳1,000 | Min Withdraw: ৳1,000</p>
                 <p>Withdraw Speed: 5-15 Mins</p>
               </div>
             </div>
