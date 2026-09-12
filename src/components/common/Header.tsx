@@ -141,7 +141,7 @@ export const Header: React.FC = () => {
                     className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 rounded-lg text-left cursor-pointer"
                   >
                     <Sparkles className="w-4 h-4 text-amber-400" />
-                    <span>Referral Link (৳50 Bonus)</span>
+                    <span>Referral Link (৳{settings.referralBonusPerPlan || 40} Bonus)</span>
                   </button>
 
                   <button

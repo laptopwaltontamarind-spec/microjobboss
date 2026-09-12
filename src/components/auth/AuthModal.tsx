@@ -376,7 +376,7 @@ export const AuthModal: React.FC = () => {
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-amber-500 font-mono transition-colors"
                   />
                 </div>
-                <p className="text-[10px] text-slate-500 mt-1">Get ৳60 plan purchase bonus credited to your upline referrer.</p>
+                <p className="text-[10px] text-slate-500 mt-1">Get ৳{settings.referralBonusPerPlan || 40} plan purchase bonus credited to your upline referrer.</p>
               </div>
 
               <button
