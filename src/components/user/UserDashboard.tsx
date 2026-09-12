@@ -197,6 +197,10 @@ export const UserDashboard: React.FC = () => {
 
   const handlePlanPurchase = (e: React.FormEvent) => {
     e.preventDefault();
+    if (settings.isPlanPurchaseEnabled === false) {
+      toast(settings.planPurchaseDisabledNotice || 'অ্যাডমিন কর্তৃক সাময়িকভাবে নতুন ইনভেস্টমেন্ট প্ল্যান কেনা বন্ধ রাখা হয়েছে।', 'error');
+      return;
+    }
     const res = buyMiningPlan(selectedPlanForBuy, planBuyAmount);
     if (res.success) {
       setActiveUserTab('dashboard');
@@ -620,15 +624,45 @@ export const UserDashboard: React.FC = () => {
           {/* TAB 2: INVESTMENT PLANS */}
           {activeUserTab === 'plans' && (
             <div className="space-y-6 animate-in fade-in duration-200">
+              {/* Paused by Admin Notice Banner */}
+              {settings.isPlanPurchaseEnabled === false && (
+                <div className="bg-rose-950/70 border-2 border-rose-500/50 rounded-2xl p-4 shadow-xl flex items-start gap-3.5 text-rose-200">
+                  <div className="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center shrink-0 text-rose-400">
+                    <AlertTriangle className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-1 flex-1">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <h3 className="font-extrabold text-sm text-rose-300">
+                        ইনভেস্টমেন্ট প্ল্যান পারচেজ সাময়িকভাবে স্থগিত (Plan Purchases Paused)
+                      </h3>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                        PAUSED BY ADMIN
+                      </span>
+                    </div>
+                    <p className="text-xs text-rose-300/90 leading-relaxed">
+                      {settings.planPurchaseDisabledNotice || '⚠️ অ্যাডমিন কর্তৃক সাময়িকভাবে নতুন ইনভেস্টমেন্ট প্ল্যান কেনা বন্ধ রাখা হয়েছে। খুব শীঘ্রই পুনরায় চালু করা হবে। সাময়িক অসুবিধার জন্য আমরা দুঃখিত।'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-xl font-bold text-slate-100">Standard 8.50% Daily Mining Plans</h2>
                     <p className="text-xs text-slate-400">Lock period: 30 days. After 30 days, principal matures and you can re-purchase any plan.</p>
                   </div>
-                  <span className="bg-amber-500/10 text-amber-400 border border-amber-500/30 px-3 py-1 rounded-full text-xs font-bold font-mono">
-                    Daily 8.5% Auto Payout
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {settings.isPlanPurchaseEnabled === false ? (
+                      <span className="bg-rose-500/10 text-rose-400 border border-rose-500/30 px-3 py-1 rounded-full text-xs font-bold font-mono">
+                        Purchase Off
+                      </span>
+                    ) : (
+                      <span className="bg-amber-500/10 text-amber-400 border border-amber-500/30 px-3 py-1 rounded-full text-xs font-bold font-mono">
+                        Daily 8.5% Auto Payout
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Plan Selection Grid */}
@@ -711,14 +745,25 @@ export const UserDashboard: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <button
-                      type="submit"
-                      className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-bold text-sm rounded-xl shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer transition-all"
-                    >
-                      <Zap className="w-4 h-4" />
-                      <span>Lock ৳{planBuyAmount.toLocaleString()} & Start 8.5% Daily Mining</span>
-                    </button>
-                    {currentUser.walletBalance < planBuyAmount && (
+                    {settings.isPlanPurchaseEnabled === false ? (
+                      <button
+                        type="button"
+                        disabled
+                        className="flex-1 py-3 bg-slate-900 border border-rose-500/40 text-rose-300 font-bold text-sm rounded-xl flex items-center justify-center gap-2 cursor-not-allowed opacity-90"
+                      >
+                        <Lock className="w-4 h-4 text-rose-400" />
+                        <span>ইনভেস্টমেন্ট প্ল্যান কেনা সাময়িকভাবে অফ আছে</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-bold text-sm rounded-xl shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                      >
+                        <Zap className="w-4 h-4" />
+                        <span>Lock ৳{planBuyAmount.toLocaleString()} & Start 8.5% Daily Mining</span>
+                      </button>
+                    )}
+                    {currentUser.walletBalance < planBuyAmount && settings.isPlanPurchaseEnabled !== false && (
                       <button
                         type="button"
                         onClick={() => setActiveUserTab('wallet')}

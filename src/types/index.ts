@@ -191,6 +191,8 @@ export interface PlatformSettings {
   referralBonusPerPlan: number; // ৳40 direct commission on first plan
   referralCommissionPercent: number; // 5% upline commission on every plan buy/renewal
   maxMemberLimit?: number; // site member capacity limit, can be increased or decreased by admin
+  isPlanPurchaseEnabled?: boolean; // admin can turn ON or OFF plan buying for members
+  planPurchaseDisabledNotice?: string; // notice message when plan purchase is paused
   telegramSupportUrl: string;
   whatsappSupportUrl: string;
   helplinePhone: string;

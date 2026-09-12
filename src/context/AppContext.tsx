@@ -255,6 +255,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       referralBonusPerPlan: (stored?.referralBonusPerPlan === 60 || !stored?.referralBonusPerPlan) ? 40 : stored.referralBonusPerPlan,
       referralCommissionPercent: 5.0,
       maxMemberLimit: typeof stored?.maxMemberLimit === 'number' ? stored.maxMemberLimit : 100000,
+      isPlanPurchaseEnabled: typeof stored?.isPlanPurchaseEnabled === 'boolean' ? stored.isPlanPurchaseEnabled : true,
+      planPurchaseDisabledNotice: stored?.planPurchaseDisabledNotice || DEFAULT_SETTINGS.planPurchaseDisabledNotice,
       isMaintenanceMode: typeof stored?.isMaintenanceMode === 'boolean' ? stored.isMaintenanceMode : false,
       maintenanceNotice: stored?.maintenanceNotice || DEFAULT_SETTINGS.maintenanceNotice,
       maintenanceEstimateTime: stored?.maintenanceEstimateTime || DEFAULT_SETTINGS.maintenanceEstimateTime
@@ -345,12 +347,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const bonus = cloudSettings?.referralBonusPerPlan === 60 ? 40 : (cloudSettings?.referralBonusPerPlan ?? 40);
           const comm = cloudSettings?.referralCommissionPercent ?? 5.0;
           const memberLimit = typeof cloudSettings?.maxMemberLimit === 'number' ? cloudSettings.maxMemberLimit : (prev.maxMemberLimit ?? 100000);
+          const isPlanPurchase = typeof cloudSettings?.isPlanPurchaseEnabled === 'boolean' ? cloudSettings.isPlanPurchaseEnabled : (prev.isPlanPurchaseEnabled ?? true);
           const updated = { 
             ...prev, 
             ...cloudSettings,
             referralBonusPerPlan: bonus,
             referralCommissionPercent: comm,
-            maxMemberLimit: memberLimit
+            maxMemberLimit: memberLimit,
+            isPlanPurchaseEnabled: isPlanPurchase,
+            planPurchaseDisabledNotice: cloudSettings?.planPurchaseDisabledNotice || prev.planPurchaseDisabledNotice || DEFAULT_SETTINGS.planPurchaseDisabledNotice
           };
           setStorage(STORAGE_KEYS.SETTINGS, updated);
           return updated;
@@ -719,6 +724,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (currentUser.isBanned) {
       return { success: false, message: 'Account is banned.' };
+    }
+
+    // Check if plan purchase is disabled by admin
+    if (settings.isPlanPurchaseEnabled === false) {
+      const notice = settings.planPurchaseDisabledNotice || '⚠️ অ্যাডমিন কর্তৃক সাময়িকভাবে নতুন ইনভেস্টমেন্ট প্ল্যান কেনা বন্ধ রাখা হয়েছে। খুব শীঘ্রই পুনরায় চালু করা হবে।';
+      toast(notice, 'error');
+      return { 
+        success: false, 
+        message: notice
+      };
     }
 
     const plan = miningPlans.find(p => p.id === planId) || miningPlans[0];
