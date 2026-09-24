@@ -9,7 +9,8 @@ import {
   DepositTransaction, 
   WithdrawTransaction, 
   WalletAuditLog,
-  PasswordResetRequest
+  PasswordResetRequest,
+  NoticeItem
 } from '../types';
 
 export const DEFAULT_MINING_PLANS: MiningPlan[] = [
@@ -132,7 +133,7 @@ export const DEFAULT_USERS: User[] = [
   {
     id: 'user_boss_admin',
     memberCode: 'BOSS-ADMIN',
-    name: 'Super Admin Shykot',
+    name: 'MicroJobBoss Admin',
     phone: '01700000000',
     email: 'adminSHYKOT@gmail.com',
     password: 'adminSHYKOT',
@@ -231,3 +232,46 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
   maintenanceNotice: 'সাইটের সিস্টেম আপডেট ও সার্ভার মেইনটেন্যান্স এর কাজ চলতেছে, কিছুক্ষণ অপেক্ষা করুন। খুব শীঘ্রই সাইট পুনরায় সচল হবে। সাময়িক অসুবিধার জন্য আমরা আন্তরিকভাবে দুঃখিত।',
   maintenanceEstimateTime: '15-30 মিনিট'
 };
+
+export const DEFAULT_NOTICES: NoticeItem[] = [
+  {
+    id: 'notice_welcome_01',
+    title: '📢 MicroJobBoss অফিশিয়াল নোটিশ বোর্ডে স্বাগতম',
+    content: 'MicroJobBoss প্ল্যাটফর্মের সকল প্রিয় মেম্বারদের জানানো যাচ্ছে যে, প্ল্যাটফর্মের সকল আপডেট, ডিপোজিট-উইথড্রয়াল প্রসেসিং সময়সূচি, বোনাস অফার এবং ভবিষ্যৎ সকল কাজের ঘোষণা এখন থেকে এই নোটিশ বোর্ডে নিয়মিত প্রকাশ করা হবে। যেকোনো নতুন সিদ্ধান্ত বা নিয়ম পরিবর্তনের নোটিশ এখানে পাবেন।',
+    category: 'general',
+    priority: 'high',
+    scheduleTime: '২৪/৭ নিয়মিত কার্যকর',
+    targetAudience: 'all',
+    isPinned: true,
+    isActive: true,
+    authorName: 'MicroJobBoss Official',
+    createdAt: '2025-01-10T10:00:00.000Z'
+  },
+  {
+    id: 'notice_schedule_02',
+    title: '⚡ ডিপোজিট ও উইথড্রয়াল প্রসেসিং সময়সূচি সংক্রান্ত নোটিশ',
+    content: 'সকাল ৯:০০ টা থেকে রাত ১১:০০ টা পর্যন্ত সকল ক্যাশআউট / উইথড্রয়াল রিকোয়েস্ট সর্বোচ্চ ৫ থেকে ১৫ মিনিটের মধ্যে সফলভাবে পাঠানো হয়। রাত ১১:০০ টার পরবর্তী রিকোয়েস্টগুলো পরবর্তী দিন সকাল ৯:০০ টার সাথে সাথে প্রসেস করা হবে। অনুগ্রহ করে সঠিক TrxID ও নম্বর দিয়ে আবেদন করুন।',
+    category: 'schedule',
+    priority: 'high',
+    scheduleTime: 'প্রতিদিন সকাল ০৯:০০ টা - রাত ১১:০০ টা',
+    targetAudience: 'all',
+    isPinned: true,
+    isActive: true,
+    authorName: 'MicroJobBoss Finance Desk',
+    createdAt: '2025-01-15T12:00:00.000Z'
+  },
+  {
+    id: 'notice_update_03',
+    title: '🚀 সিস্টেম পারফরম্যান্স ও সার্ভার অপটিমাইজেশন শিডিউল',
+    content: 'ব্যবহারকারীদের লেনদেন ও ক্লাউড মাইনিং আরও দ্রুত করতে প্রতি শুক্রবার দিবাগত রাত ১২:৩০ টা থেকে রাত ১:০০ টা পর্যন্ত ৩০ মিনিটের জন্য ব্যাকএন্ড অপটিমাইজেশন পরিচালিত হতে পারে। এই সময়ে সাইটে সামান্য সাময়িক বিলম্ব হলেও কোনো মেম্বারের আর্নিং মিস হবে না।',
+    category: 'maintenance',
+    priority: 'normal',
+    scheduleTime: 'শুক্রবার দিবাগত রাত ১২:৩০ টা - ০১:০০ টা',
+    targetAudience: 'all',
+    isPinned: false,
+    isActive: true,
+    authorName: 'MicroJobBoss Tech Team',
+    createdAt: '2025-01-20T16:30:00.000Z'
+  }
+];
+

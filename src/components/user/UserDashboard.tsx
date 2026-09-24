@@ -29,10 +29,12 @@ import {
   RefreshCw,
   Gift,
   Eye,
-  EyeOff
+  EyeOff,
+  Megaphone
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { GatewayType } from '../../types';
+import { NoticeBoardView } from './NoticeBoardView';
 
 export const UserDashboard: React.FC = () => {
   const { 
@@ -47,7 +49,8 @@ export const UserDashboard: React.FC = () => {
     userTickets, 
     deposits,
     gateways, 
-    buyMiningPlan, 
+    buyMiningPlan,
+    notices, 
     claimMiningReward, 
     submitDeposit, 
     submitWithdraw, 
@@ -302,6 +305,27 @@ export const UserDashboard: React.FC = () => {
                   <Layers className="w-4 h-4" />
                   <span>Investment Plan (৮.৫% প্ল্যান)</span>
                 </button>
+
+                <button
+                  onClick={() => setActiveUserTab('notices')}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                    activeUserTab === 'notices'
+                      ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
+                      : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Megaphone className="w-4 h-4" />
+                    <span>Notice Board (নোটিশ বোর্ড)</span>
+                  </div>
+                  {notices.filter(n => n.isActive).length > 0 && (
+                    <span className={`text-[10px] font-black px-1.5 py-0.2 rounded-full ${
+                      activeUserTab === 'notices' ? 'bg-slate-950 text-amber-400' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                    }`}>
+                      {notices.filter(n => n.isActive).length}
+                    </span>
+                  )}
+                </button>
               </div>
             </div>
 
@@ -389,6 +413,43 @@ export const UserDashboard: React.FC = () => {
           {/* TAB 1: MINING DASHBOARD */}
           {activeUserTab === 'dashboard' && (
             <div className="space-y-6 animate-in fade-in duration-200">
+
+              {/* Official Notice Board Highlight Banner */}
+              {notices.filter(n => n.isActive).length > 0 && (
+                <div className="bg-gradient-to-r from-amber-950/30 via-slate-900 to-slate-900 border border-amber-500/40 rounded-2xl p-4 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30 mt-0.5">
+                      <Megaphone className="w-5 h-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 uppercase tracking-wider">
+                          📢 সাম্প্রতিক নোটিশ
+                        </span>
+                        {notices.find(n => n.isActive && n.scheduleTime) && (
+                          <span className="text-[10px] text-cyan-400 font-mono">
+                            সময়সূচি আপডেট
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="text-sm font-bold text-white line-clamp-1">
+                        {notices.find(n => n.isActive && n.isPinned)?.title || notices.find(n => n.isActive)?.title}
+                      </h4>
+                      <p className="text-xs text-slate-300 line-clamp-1">
+                        {notices.find(n => n.isActive && n.isPinned)?.content || notices.find(n => n.isActive)?.content}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setActiveUserTab('notices')}
+                    className="w-full sm:w-auto px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-all shrink-0 cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap"
+                  >
+                    <span>সকল নোটিশ দেখুন ({notices.filter(n => n.isActive).length})</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
 
               {/* 30-Day Plan Expiration Banner */}
               {userInvestments.length > 0 && activeInvestments.length === 0 && (
@@ -1401,6 +1462,11 @@ export const UserDashboard: React.FC = () => {
                 </button>
               </form>
             </div>
+          )}
+
+          {/* TAB 8: NOTICE BOARD */}
+          {activeUserTab === 'notices' && (
+            <NoticeBoardView />
           )}
 
         </main>

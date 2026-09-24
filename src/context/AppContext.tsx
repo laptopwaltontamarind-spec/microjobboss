@@ -12,7 +12,8 @@ import {
   GatewayConfigItem, 
   LiveTickerItem, 
   PlatformSettings,
-  GatewayType
+  GatewayType,
+  NoticeItem
 } from '../types';
 import { 
   DEFAULT_USERS, 
@@ -25,7 +26,8 @@ import {
   DEFAULT_TICKERS, 
   DEFAULT_SUPPORT_TICKETS, 
   DEFAULT_RESET_REQUESTS, 
-  DEFAULT_SETTINGS 
+  DEFAULT_SETTINGS,
+  DEFAULT_NOTICES
 } from '../data/initialData';
 import {
   subscribeToUsers,
@@ -37,6 +39,7 @@ import {
   subscribeToResets,
   subscribeToSettings,
   subscribeToTickers,
+  subscribeToNotices,
   firestoreSaveUser,
   firestoreSaveDeposit,
   firestoreSaveWithdraw,
@@ -46,6 +49,8 @@ import {
   firestoreSaveResetRequest,
   firestoreSaveSettings,
   firestoreSaveTicker,
+  firestoreSaveNotice,
+  firestoreDeleteNotice,
   firestoreDeleteMemberData,
   fetchCloudUsersList,
   seedInitialFirestoreData
@@ -55,10 +60,10 @@ interface AppContextType {
   // Navigation & Portal View
   currentPortal: 'user' | 'admin';
   setCurrentPortal: (portal: 'user' | 'admin') => void;
-  activeUserTab: 'dashboard' | 'plans' | 'wallet' | 'history' | 'support' | 'profile' | 'referrals';
-  setActiveUserTab: (tab: 'dashboard' | 'plans' | 'wallet' | 'history' | 'support' | 'profile' | 'referrals') => void;
-  activeAdminTab: 'overview' | 'members' | 'banned' | 'deposits' | 'withdrawals' | 'gateways' | 'support' | 'resets' | 'moderators' | 'settings';
-  setActiveAdminTab: (tab: 'overview' | 'members' | 'banned' | 'deposits' | 'withdrawals' | 'gateways' | 'support' | 'resets' | 'moderators' | 'settings') => void;
+  activeUserTab: 'dashboard' | 'plans' | 'wallet' | 'history' | 'support' | 'profile' | 'referrals' | 'notices';
+  setActiveUserTab: (tab: 'dashboard' | 'plans' | 'wallet' | 'history' | 'support' | 'profile' | 'referrals' | 'notices') => void;
+  activeAdminTab: 'overview' | 'members' | 'banned' | 'deposits' | 'withdrawals' | 'gateways' | 'support' | 'resets' | 'moderators' | 'settings' | 'notices';
+  setActiveAdminTab: (tab: 'overview' | 'members' | 'banned' | 'deposits' | 'withdrawals' | 'gateways' | 'support' | 'resets' | 'moderators' | 'settings' | 'notices') => void;
   
   // Auth
   currentUser: User | null;
@@ -86,6 +91,9 @@ interface AppContextType {
   gateways: Record<string, GatewayConfigItem>;
   liveTickers: LiveTickerItem[];
   settings: PlatformSettings;
+  notices: NoticeItem[];
+  isNoticeBoardModalOpen: boolean;
+  setIsNoticeBoardModalOpen: (open: boolean) => void;
 
   // Mining & User Actions
   buyMiningPlan: (planId: string, amount: number) => { success: boolean; message: string };
@@ -94,6 +102,13 @@ interface AppContextType {
   submitWithdraw: (gateway: GatewayType, recipientNumber: string, amount: number) => { success: boolean; message: string };
   createSupportTicket: (subject: string, category: SupportTicket['category'], message: string) => { success: boolean; message: string };
   updateUserProfile: (name: string, email: string, phone: string, newPassword?: string) => { success: boolean; message: string };
+
+  // Notice Management
+  addNotice: (notice: Omit<NoticeItem, 'id' | 'createdAt'>) => void;
+  updateNotice: (noticeId: string, updates: Partial<NoticeItem>) => void;
+  deleteNotice: (noticeId: string) => void;
+  togglePinNotice: (noticeId: string) => void;
+  toggleActiveNotice: (noticeId: string) => void;
 
   // Admin Controls
   approveDeposit: (depositId: string) => void;
@@ -138,6 +153,7 @@ const STORAGE_KEYS = {
   GATEWAYS: 'mjb_live_v5_gateways',
   TICKERS: 'mjb_live_v5_tickers',
   SETTINGS: 'mjb_live_v5_settings',
+  NOTICES: 'mjb_live_v5_notices',
   CURRENT_USER_ID: 'mjb_live_v5_current_user_id',
   CURRENT_ADMIN_ID: 'mjb_live_v5_current_admin_id',
   PORTAL: 'mjb_live_v5_portal'
@@ -170,12 +186,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return 'user';
   });
 
-  const [activeUserTab, setActiveUserTab] = useState<'dashboard' | 'plans' | 'wallet' | 'history' | 'support' | 'profile' | 'referrals'>('dashboard');
-  const [activeAdminTab, setActiveAdminTab] = useState<'overview' | 'members' | 'banned' | 'deposits' | 'withdrawals' | 'gateways' | 'support' | 'resets' | 'moderators' | 'settings'>('overview');
+  const [activeUserTab, setActiveUserTab] = useState<'dashboard' | 'plans' | 'wallet' | 'history' | 'support' | 'profile' | 'referrals' | 'notices'>('dashboard');
+  const [activeAdminTab, setActiveAdminTab] = useState<'overview' | 'members' | 'banned' | 'deposits' | 'withdrawals' | 'gateways' | 'support' | 'resets' | 'moderators' | 'settings' | 'notices'>('overview');
 
   // Auth UI
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | 'forgot' | 'admin_login'>('login');
+  const [isNoticeBoardModalOpen, setIsNoticeBoardModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ msg: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   const toast = (msg: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -199,7 +216,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ...updated[adminIndex],
         email: 'adminSHYKOT@gmail.com',
         password: 'adminSHYKOT',
-        name: 'Super Admin Shykot'
+        name: 'MicroJobBoss Admin'
       };
       return updated;
     }
@@ -209,7 +226,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [investments, setInvestments] = useState<UserInvestment[]>(() => getStorage<UserInvestment[]>(STORAGE_KEYS.INVESTMENTS, DEFAULT_INVESTMENTS));
   const [deposits, setDeposits] = useState<DepositTransaction[]>(() => getStorage<DepositTransaction[]>(STORAGE_KEYS.DEPOSITS, DEFAULT_DEPOSITS));
   const [withdraws, setWithdraws] = useState<WithdrawTransaction[]>(() => getStorage<WithdrawTransaction[]>(STORAGE_KEYS.WITHDRAWS, DEFAULT_WITHDRAWS));
-  const [auditLogs, setAuditLogs] = useState<WalletAuditLog[]>(() => getStorage<WalletAuditLog[]>(STORAGE_KEYS.AUDIT_LOGS, DEFAULT_AUDIT_LOGS));
+  const [auditLogs, setAuditLogs] = useState<WalletAuditLog[]>(() => {
+    const storedLogs = getStorage<WalletAuditLog[]>(STORAGE_KEYS.AUDIT_LOGS, DEFAULT_AUDIT_LOGS);
+    // Sanitize any previous logs showing "Super Admin Shykot" or old admin references to MicroJobBoss
+    return storedLogs.map(log => ({
+      ...log,
+      title: log.title
+        ? log.title.replace(/Super Admin Shykot/gi, 'MicroJobBoss').replace(/Admin Wallet/gi, 'MicroJobBoss Wallet').replace(/Admin adjustment by [^.]+/gi, 'Adjustment by MicroJobBoss')
+        : log.title,
+      description: log.description
+        ? log.description.replace(/Super Admin Shykot/gi, 'MicroJobBoss').replace(/Admin adjustment by [^.]+/gi, 'Adjustment by MicroJobBoss')
+        : log.description
+    }));
+  });
+  const [notices, setNotices] = useState<NoticeItem[]>(() => getStorage<NoticeItem[]>(STORAGE_KEYS.NOTICES, DEFAULT_NOTICES));
   const [supportTickets, setSupportTickets] = useState<SupportTicket[]>(() => getStorage<SupportTicket[]>(STORAGE_KEYS.SUPPORT, DEFAULT_SUPPORT_TICKETS));
   const [resetRequests, setResetRequests] = useState<PasswordResetRequest[]>(() => getStorage<PasswordResetRequest[]>(STORAGE_KEYS.RESETS, DEFAULT_RESET_REQUESTS));
   const [gateways, setGateways] = useState<Record<string, GatewayConfigItem>>(() => {
@@ -278,6 +308,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => { setStorage(STORAGE_KEYS.GATEWAYS, gateways); }, [gateways]);
   useEffect(() => { setStorage(STORAGE_KEYS.TICKERS, liveTickers); }, [liveTickers]);
   useEffect(() => { setStorage(STORAGE_KEYS.SETTINGS, settings); }, [settings]);
+  useEffect(() => { setStorage(STORAGE_KEYS.NOTICES, notices); }, [notices]);
   useEffect(() => { setStorage(STORAGE_KEYS.PORTAL, currentPortal); }, [currentPortal]);
   useEffect(() => { setStorage(STORAGE_KEYS.CURRENT_USER_ID, currentUserId); }, [currentUserId]);
   useEffect(() => { setStorage(STORAGE_KEYS.CURRENT_ADMIN_ID, currentAdminId); }, [currentAdminId]);
@@ -350,7 +381,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const isPlanPurchase = typeof cloudSettings?.isPlanPurchaseEnabled === 'boolean' ? cloudSettings.isPlanPurchaseEnabled : (prev.isPlanPurchaseEnabled ?? true);
           const updated = { 
             ...prev, 
-            ...cloudSettings,
+            ...cloudSettings, 
             referralBonusPerPlan: bonus,
             referralCommissionPercent: comm,
             maxMemberLimit: memberLimit,
@@ -367,6 +398,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setLiveTickers(cloudTickers);
     });
 
+    const unsubNotices = subscribeToNotices((cloudNotices) => {
+      if (cloudNotices && cloudNotices.length > 0) {
+        setNotices(cloudNotices);
+        setStorage(STORAGE_KEYS.NOTICES, cloudNotices);
+      }
+    });
+
     return () => {
       unsubUsers();
       unsubDeposits();
@@ -377,6 +415,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       unsubResets();
       unsubSettings();
       unsubTickers();
+      unsubNotices();
     };
   }, []);
 
@@ -1398,12 +1437,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       userId: user.id,
       memberCode: user.memberCode,
       type: isCredit ? 'admin_credit' : 'admin_debit',
-      title: isCredit ? `Admin Wallet Credit (+৳${absAmount})` : `Admin Wallet Debit (-৳${absAmount})`,
+      title: isCredit ? `Adjustment by MicroJobBoss (+৳${absAmount})` : `Adjustment by MicroJobBoss (-৳${absAmount})`,
       amount: absAmount,
       isCredit,
       balanceBefore,
       balanceAfter,
-      description: `Admin adjustment by ${currentAdmin?.name || 'Admin'}. Reason: ${reason || 'Manual adjustment'}`,
+      description: `Adjustment by MicroJobBoss. Reason: ${reason || 'Bonus / Manual adjustment'}`,
       timestamp: new Date().toISOString()
     };
     setAuditLogs(prev => [audit, ...prev]);
@@ -1663,6 +1702,79 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     toast(`Added live ${type} feed item for ৳${amount.toLocaleString()}`, 'success');
   };
 
+  // Notice Board Operations
+  const addNotice = (noticeData: Omit<NoticeItem, 'id' | 'createdAt'>) => {
+    const newNotice: NoticeItem = {
+      ...noticeData,
+      id: 'notice_' + Date.now(),
+      createdAt: new Date().toISOString()
+    };
+    setNotices(prev => {
+      const updated = [newNotice, ...prev];
+      firestoreSaveNotice(newNotice);
+      return updated;
+    });
+    toast('নতুন নোটিশ সফলভাবে প্রকাশ করা হয়েছে', 'success');
+  };
+
+  const updateNotice = (noticeId: string, updates: Partial<NoticeItem>) => {
+    setNotices(prev => {
+      const updated = prev.map(n => {
+        if (n.id === noticeId) {
+          const u: NoticeItem = {
+            ...n,
+            ...updates,
+            updatedAt: new Date().toISOString()
+          };
+          firestoreSaveNotice(u);
+          return u;
+        }
+        return n;
+      });
+      return updated;
+    });
+    toast('নোটিশ সফলভাবে আপডেট করা হয়েছে', 'success');
+  };
+
+  const deleteNotice = (noticeId: string) => {
+    setNotices(prev => {
+      const updated = prev.filter(n => n.id !== noticeId);
+      firestoreDeleteNotice(noticeId);
+      return updated;
+    });
+    toast('নোটিশ মুছে ফেলা হয়েছে', 'info');
+  };
+
+  const togglePinNotice = (noticeId: string) => {
+    setNotices(prev => {
+      const updated = prev.map(n => {
+        if (n.id === noticeId) {
+          const u = { ...n, isPinned: !n.isPinned, updatedAt: new Date().toISOString() };
+          firestoreSaveNotice(u);
+          return u;
+        }
+        return n;
+      });
+      return updated;
+    });
+    toast('নোটিশের পিন স্ট্যাটাস পরিবর্তন করা হয়েছে', 'info');
+  };
+
+  const toggleActiveNotice = (noticeId: string) => {
+    setNotices(prev => {
+      const updated = prev.map(n => {
+        if (n.id === noticeId) {
+          const u = { ...n, isActive: !n.isActive, updatedAt: new Date().toISOString() };
+          firestoreSaveNotice(u);
+          return u;
+        }
+        return n;
+      });
+      return updated;
+    });
+    toast('নোটিশ সক্রিয়/নিষ্ক্রিয় স্ট্যাটাস পরিবর্তন করা হয়েছে', 'info');
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -1678,6 +1790,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsAuthModalOpen,
         authModalMode,
         setAuthModalMode,
+        isNoticeBoardModalOpen,
+        setIsNoticeBoardModalOpen,
         loginUser,
         registerUser,
         logoutUser,
@@ -1695,6 +1809,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         gateways,
         liveTickers,
         settings,
+        notices,
+        addNotice,
+        updateNotice,
+        deleteNotice,
+        togglePinNotice,
+        toggleActiveNotice,
         buyMiningPlan,
         claimMiningReward,
         submitDeposit,

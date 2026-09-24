@@ -19,7 +19,8 @@ import {
   PasswordResetRequest, 
   GatewayConfigItem, 
   PlatformSettings,
-  LiveTickerItem
+  LiveTickerItem,
+  NoticeItem
 } from '../types';
 
 export const COLLECTIONS = {
@@ -31,7 +32,8 @@ export const COLLECTIONS = {
   SUPPORT: 'support_tickets',
   RESETS: 'password_resets',
   SETTINGS: 'platform_settings',
-  TICKERS: 'live_tickers'
+  TICKERS: 'live_tickers',
+  NOTICES: 'notices'
 };
 
 // Real-time Firestore Listeners
@@ -117,6 +119,18 @@ export const subscribeToTickers = (callback: (tickers: LiveTickerItem[]) => void
   }, (err) => console.warn('Firestore tickers subscription error:', err));
 };
 
+export const subscribeToNotices = (callback: (notices: NoticeItem[]) => void) => {
+  return onSnapshot(collection(db, COLLECTIONS.NOTICES), (snapshot) => {
+    const list: NoticeItem[] = [];
+    snapshot.forEach((d) => list.push(d.data() as NoticeItem));
+    list.sort((a, b) => {
+      if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+    callback(list);
+  }, (err) => console.warn('Firestore notices subscription error:', err));
+};
+
 // Write & Sync Operations to Cloud Firestore
 export const firestoreSaveUser = async (user: User) => {
   try {
@@ -187,6 +201,22 @@ export const firestoreSaveTicker = async (ticker: LiveTickerItem) => {
     await setDoc(doc(db, COLLECTIONS.TICKERS, ticker.id), ticker, { merge: true });
   } catch (e) {
     console.error('Error saving ticker to Firestore:', e);
+  }
+};
+
+export const firestoreSaveNotice = async (notice: NoticeItem) => {
+  try {
+    await setDoc(doc(db, COLLECTIONS.NOTICES, notice.id), notice, { merge: true });
+  } catch (e) {
+    console.error('Error saving notice to Firestore:', e);
+  }
+};
+
+export const firestoreDeleteNotice = async (noticeId: string) => {
+  try {
+    await deleteDoc(doc(db, COLLECTIONS.NOTICES, noticeId));
+  } catch (e) {
+    console.error('Error deleting notice from Firestore:', e);
   }
 };
 

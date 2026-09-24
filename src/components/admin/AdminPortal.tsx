@@ -45,10 +45,12 @@ import {
   PieChart,
   BarChart3,
   Power,
-  Zap
+  Zap,
+  Megaphone
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { User, GatewayType, SupportTicket } from '../../types';
+import { NoticeBoardAdmin } from './NoticeBoardAdmin';
 
 export const AdminPortal: React.FC = () => {
   const {
@@ -64,6 +66,7 @@ export const AdminPortal: React.FC = () => {
     resetRequests,
     gateways,
     settings,
+    notices,
     approveDeposit,
     rejectDeposit,
     approveWithdraw,
@@ -659,6 +662,7 @@ export const AdminPortal: React.FC = () => {
           { id: 'gateways', label: 'Gateways (bKash/Nagad)', icon: CreditCard, visible: currentAdmin.role === 'admin' || currentAdmin.moderatorPermissions?.canEditGateways },
           { id: 'support', label: `Support Box (${openTickets.length})`, icon: MessageSquare, visible: currentAdmin.role === 'admin' || currentAdmin.moderatorPermissions?.canManageSupport },
           { id: 'resets', label: `Reset Codes (${pendingResets.length})`, icon: KeyRound, visible: currentAdmin.role === 'admin' || currentAdmin.moderatorPermissions?.canManageMembers },
+          { id: 'notices', label: `Notice Board (${notices.length})`, icon: Megaphone, visible: true },
           { id: 'moderators', label: 'Moderators & Staff', icon: UserPlus, visible: currentAdmin.role === 'admin' },
           { id: 'settings', label: 'Site Settings', icon: Sliders, visible: currentAdmin.role === 'admin' || currentAdmin.moderatorPermissions?.canManageMaintenance }
         ].filter(t => t.visible).map((tab) => {
@@ -2356,6 +2360,11 @@ export const AdminPortal: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 11. NOTICE BOARD MANAGEMENT */}
+      {activeAdminTab === 'notices' && (
+        <NoticeBoardAdmin />
       )}
 
       {/* ================= MODAL: 360-DEGREE MEMBER MANAGEMENT ================= */}

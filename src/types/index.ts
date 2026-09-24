@@ -11,6 +11,7 @@ export interface ModeratorPermissions {
   canEditGateways: boolean;
   canViewAuditLogs: boolean;
   canManageMaintenance?: boolean;
+  canManageNotices?: boolean;
 }
 
 export interface User {
@@ -200,4 +201,21 @@ export interface PlatformSettings {
   isMaintenanceMode: boolean;
   maintenanceNotice: string;
   maintenanceEstimateTime: string;
+}
+
+export type NoticeCategory = 'general' | 'schedule' | 'maintenance' | 'offer' | 'update' | 'urgent';
+
+export interface NoticeItem {
+  id: string;
+  title: string;
+  content: string;
+  category: NoticeCategory;
+  priority: 'normal' | 'high' | 'urgent';
+  scheduleTime?: string; // Information on "kokhon ki kora hobe" (e.g. "আজ রাত ১২:০০ টা - ভোর ৪:০০ টা")
+  targetAudience: 'all' | 'investors' | 'new_members';
+  isPinned: boolean;
+  isActive: boolean;
+  authorName?: string;
+  createdAt: string;
+  updatedAt?: string;
 }

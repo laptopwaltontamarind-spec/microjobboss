@@ -13,9 +13,11 @@ import {
   PhoneCall,
   Bell,
   CheckCircle2,
-  Lock
+  Lock,
+  Megaphone
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { NoticeBoardModal } from './NoticeBoardModal';
 
 export const Header: React.FC = () => {
   const { 
@@ -33,7 +35,9 @@ export const Header: React.FC = () => {
     resetRequests,
     supportTickets,
     deposits,
-    withdraws
+    withdraws,
+    notices,
+    setIsNoticeBoardModalOpen
   } = useApp();
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -97,6 +101,21 @@ export const Header: React.FC = () => {
 
         {/* Action Controls (Clean user interface - zero admin controls for members) */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Notice Board Quick Access Button */}
+          <button
+            onClick={() => setIsNoticeBoardModalOpen(true)}
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all cursor-pointer shadow-sm shadow-amber-500/10"
+            title="অফিশিয়াল নোটিশ বোর্ড"
+          >
+            <Megaphone className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden sm:inline">নোটিশ বোর্ড</span>
+            {notices.filter(n => n.isActive).length > 0 && (
+              <span className="bg-amber-500 text-slate-950 text-[10px] font-black px-1.5 py-0.2 rounded-full leading-none">
+                {notices.filter(n => n.isActive).length}
+              </span>
+            )}
+          </button>
+
           {currentUser ? (
             <div className="relative">
               <button
@@ -155,6 +174,17 @@ export const Header: React.FC = () => {
                     <span>My Profile</span>
                   </button>
 
+                  <button
+                    onClick={() => {
+                      setActiveUserTab('notices');
+                      setIsUserMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 rounded-lg text-left cursor-pointer"
+                  >
+                    <Megaphone className="w-4 h-4 text-amber-400" />
+                    <span>Notice Board (নোটিশ বোর্ড)</span>
+                  </button>
+
                   <div className="border-t border-slate-800 my-1" />
 
                   <button
@@ -196,6 +226,9 @@ export const Header: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Global Notice Board Modal */}
+      <NoticeBoardModal />
     </header>
   );
 };
