@@ -48,6 +48,8 @@ import {
   firestoreSaveSupportTicket,
   firestoreSaveResetRequest,
   firestoreSaveSettings,
+  firestoreUpdateSettingsOnly,
+  firestoreSaveGateways,
   firestoreSaveTicker,
   firestoreSaveNotice,
   firestoreDeleteNotice,
@@ -374,14 +376,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       },
       (cloudSettings) => {
+        if (!cloudSettings) return;
         setSettings(prev => {
           const bonus = cloudSettings?.referralBonusPerPlan === 60 ? 40 : (cloudSettings?.referralBonusPerPlan ?? 40);
           const comm = cloudSettings?.referralCommissionPercent ?? 5.0;
           const memberLimit = typeof cloudSettings?.maxMemberLimit === 'number' ? cloudSettings.maxMemberLimit : (prev.maxMemberLimit ?? 100000);
           const isPlanPurchase = typeof cloudSettings?.isPlanPurchaseEnabled === 'boolean' ? cloudSettings.isPlanPurchaseEnabled : (prev.isPlanPurchaseEnabled ?? true);
+          // Maintenance mode state strictly adheres to cloudSettings if boolean, otherwise keeps current state
+          const isMaintenance = typeof cloudSettings?.isMaintenanceMode === 'boolean'
+            ? cloudSettings.isMaintenanceMode
+            : (typeof prev.isMaintenanceMode === 'boolean' ? prev.isMaintenanceMode : false);
+
           const updated = { 
             ...prev, 
             ...cloudSettings, 
+            isMaintenanceMode: isMaintenance,
             referralBonusPerPlan: bonus,
             referralCommissionPercent: comm,
             maxMemberLimit: memberLimit,
@@ -641,9 +650,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Update settings total members count
     setSettings(prev => {
-      const updated = { ...prev, totalMembersCount: prev.totalMembersCount + 1 };
+      const newTotal = prev.totalMembersCount + 1;
+      const updated = { ...prev, totalMembersCount: newTotal };
       setStorage(STORAGE_KEYS.SETTINGS, updated);
-      firestoreSaveSettings(gateways, updated);
+      firestoreUpdateSettingsOnly({ totalMembersCount: newTotal });
       return updated;
     });
 
@@ -1277,8 +1287,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Update platform settings total deposit volume
     setSettings(prev => {
-      const updated = { ...prev, totalDepositsVolume: prev.totalDepositsVolume + dep.amount };
-      firestoreSaveSettings(gateways, updated);
+      const newVol = prev.totalDepositsVolume + dep.amount;
+      const updated = { ...prev, totalDepositsVolume: newVol };
+      setStorage(STORAGE_KEYS.SETTINGS, updated);
+      firestoreUpdateSettingsOnly({ totalDepositsVolume: newVol });
       return updated;
     });
 
@@ -1335,8 +1347,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Update settings volume
     setSettings(prev => {
-      const updated = { ...prev, totalWithdrawsVolume: prev.totalWithdrawsVolume + wth.amount };
-      firestoreSaveSettings(gateways, updated);
+      const newVol = prev.totalWithdrawsVolume + wth.amount;
+      const updated = { ...prev, totalWithdrawsVolume: newVol };
+      setStorage(STORAGE_KEYS.SETTINGS, updated);
+      firestoreUpdateSettingsOnly({ totalWithdrawsVolume: newVol });
       return updated;
     });
 
@@ -1556,7 +1570,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     };
     setGateways(updatedGateways);
-    firestoreSaveSettings(updatedGateways, settings);
+    setStorage(STORAGE_KEYS.GATEWAYS, updatedGateways);
+    firestoreSaveGateways(updatedGateways);
     toast(`Payment gateway (${gatewayKey}) updated successfully`, 'success');
   };
 
@@ -1681,9 +1696,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Admin Settings & Ticker
   const updateSettings = (newSettings: Partial<PlatformSettings>) => {
-    const updated = { ...settings, ...newSettings };
-    setSettings(updated);
-    firestoreSaveSettings(gateways, updated);
+    setSettings(prev => {
+      const updated = { ...prev, ...newSettings };
+      setStorage(STORAGE_KEYS.SETTINGS, updated);
+      firestoreUpdateSettingsOnly(newSettings);
+      return updated;
+    });
     toast('Platform settings saved', 'success');
   };
 

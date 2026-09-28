@@ -76,8 +76,8 @@ const MainLayout: React.FC = () => {
         </div>
       )}
 
-      {/* Main Global Header (Hidden in Admin Portal) */}
-      {!(currentPortal === 'admin' && currentAdmin) && <Header />}
+      {/* Main Global Header (Hidden in Admin Portal & Maintenance Mode) */}
+      {!(currentPortal === 'admin' && currentAdmin) && !settings.isMaintenanceMode && <Header />}
 
       {/* Real-time Live Payouts Ticker Bar (Hidden in Admin Portal & Maintenance) */}
       {!(currentPortal === 'admin' && currentAdmin) && !settings.isMaintenanceMode && <LiveTickerBar />}

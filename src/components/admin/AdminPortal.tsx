@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Shield, 
+  ShieldCheck,
   Users, 
   ArrowDownLeft, 
   ArrowUpRight, 
@@ -150,6 +151,18 @@ export const AdminPortal: React.FC = () => {
   const [maintenanceText, setMaintenanceText] = useState(settings.maintenanceNotice || 'সাইটের কাজ চলতেছে, কিছুক্ষণ অপেক্ষা করুন।');
   const [maintenanceEstimate, setMaintenanceEstimate] = useState(settings.maintenanceEstimateTime || '15-30 মিনিট');
   const [planNoticeText, setPlanNoticeText] = useState(settings.planPurchaseDisabledNotice || '⚠️ অ্যাডমিন কর্তৃক সাময়িকভাবে নতুন ইনভেস্টমেন্ট প্ল্যান কেনা বন্ধ রাখা হয়েছে। খুব শীঘ্রই পুনরায় চালু করা হবে। সাময়িক অসুবিধার জন্য আমরা দুঃখিত।');
+
+  useEffect(() => {
+    if (settings.maintenanceNotice) {
+      setMaintenanceText(settings.maintenanceNotice);
+    }
+  }, [settings.maintenanceNotice]);
+
+  useEffect(() => {
+    if (settings.maintenanceEstimateTime) {
+      setMaintenanceEstimate(settings.maintenanceEstimateTime);
+    }
+  }, [settings.maintenanceEstimateTime]);
 
   useEffect(() => {
     if (settings.planPurchaseDisabledNotice) {
@@ -354,20 +367,20 @@ export const AdminPortal: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-bold text-sm text-slate-100">
-                  সিস্টেম মেইনটেন্যান্স ও নোটিস কন্ট্রোল (Site Maintenance Mode)
+                  সিস্টেম মেইনটেন্যান্স ও সাইট অন/অফ কন্ট্রোল (Site Maintenance Mode)
                 </h3>
                 <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
                   settings.isMaintenanceMode 
                     ? 'bg-amber-500 text-slate-950 font-black animate-pulse' 
                     : 'bg-emerald-500/20 text-emerald-400'
                 }`}>
-                  {settings.isMaintenanceMode ? '🔴 MAINTENANCE IS ACTIVE' : '🟢 SITE IS LIVE'}
+                  {settings.isMaintenanceMode ? '🔴 MAINTENANCE ACTIVE (সাইট বন্ধ)' : '🟢 SITE IS LIVE (সাইট চালু)'}
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
                 {settings.isMaintenanceMode 
-                  ? 'সাইটে মেইনটেন্যান্স চালু আছে। সাধারণ ইউজাররা নোটিস পেজ দেখবে, তবে অ্যাডমিন স্বাভাবিকভাবে কাজ করতে পারবে।'
-                  : 'সাইটের কোনো আপডেট বা সাজানোর কাজ করার সময় এখানে ১-ক্লিকে মেইনটেন্যান্স মোড অন করে কাস্টম নোটিস লিখে দিতে পারেন।'}
+                  ? 'সাইটে মেইনটেন্যান্স চালু আছে। সাধারণ ইউজার বা ভিজিটররা নোটিস পেজ দেখবে, এডমিন ব্যাকঅফিসে স্বাভাবিকভাবে কাজ করতে পারবেন।'
+                  : 'সাইটের কোনো আপডেট বা সার্ভার কাজের সময় এখানে ক্লিক করে সাইট বন্ধ ও নোটিস প্রদর্শন করতে পারেন।'}
               </p>
             </div>
           </div>
@@ -384,8 +397,8 @@ export const AdminPortal: React.FC = () => {
                 });
                 toast(
                   nextState 
-                    ? 'মেইনটেন্যান্স মোড চালু করা হয়েছে! ভিজিটররা নোটিস দেখতে পাবে।' 
-                    : 'মেইনটেন্যান্স মোড বন্ধ করা হয়েছে! সাইট সম্পূর্ণ লাইভ।', 
+                    ? '🔴 মেইনটেন্যান্স মোড চালু হয়েছে! এডমিন নিজে লাইভ না করা পর্যন্ত সাইট বন্ধ থাকবে।' 
+                    : '🟢 মেইনটেন্যান্স বন্ধ করা হয়েছে! সাইট সবার জন্য লাইভ হয়েছে।', 
                   nextState ? 'info' : 'success'
                 );
               }}
@@ -396,40 +409,78 @@ export const AdminPortal: React.FC = () => {
               }`}
             >
               <Wrench className="w-4 h-4" />
-              <span>{settings.isMaintenanceMode ? 'Turn OFF Maintenance (সাইট লাইভ করুন)' : 'Turn ON Maintenance (কাজ চলছে নোটিস দিন)'}</span>
+              <span>{settings.isMaintenanceMode ? 'Turn OFF Maintenance (সাইট লাইভ করুন)' : 'Turn ON Maintenance (সাইট বন্ধ করে কাজ করুন)'}</span>
             </button>
           </div>
         </div>
 
+        {/* 100% Manual Lock Assurance Banner */}
+        <div className="mt-4 p-3 rounded-xl bg-slate-950/70 border border-amber-500/30 flex items-start gap-2.5">
+          <ShieldCheck className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+          <div className="text-xs">
+            <span className="font-bold text-amber-300">১০০% ম্যানুয়াল কন্ট্রোল (No Auto-Start): </span>
+            <span className="text-slate-300">
+              সাইটে কোনো অটো-টাইমার নেই। আপনি আনুমানিক সময় (মিনিট) লিখলেও <strong>কোনো অবস্থাতেই সাইট নিজে নিজে বা অটো চালু হবে না</strong>। এডমিন নিজ হাতে যতক্ষণ না <strong>"Turn OFF Maintenance (সাইট লাইভ করুন)"</strong> বাটনে ক্লিক করবেন, ততক্ষণ সাইট সম্পূর্ণ বন্ধ থাকবে।
+            </span>
+          </div>
+        </div>
+
         {/* Maintenance message customization dropdown / input */}
-        <div className="mt-4 pt-4 border-t border-slate-800/80 grid grid-cols-1 md:grid-cols-12 gap-3 text-xs">
-          <div className="md:col-span-8">
-            <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-              মেইনটেন্যান্স নোটিস টেক্সট (ইউজাররা যা দেখতে পাবে):
-            </label>
-            <input
-              type="text"
-              value={maintenanceText}
-              onChange={(e) => setMaintenanceText(e.target.value)}
-              placeholder="e.g. সাইটের কাজ চলতেছে, কিছুক্ষণ অপেক্ষা করুন।"
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-amber-500"
-            />
+        <div className="mt-4 pt-4 border-t border-slate-800/80 space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3 text-xs">
+            <div className="md:col-span-8">
+              <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                মেইনটেন্যান্স নোটিস টেক্সট (ইউজাররা স্ক্রিনে যা দেখতে পাবে):
+              </label>
+              <input
+                type="text"
+                value={maintenanceText}
+                onChange={(e) => setMaintenanceText(e.target.value)}
+                placeholder="e.g. সাইটের কাজ চলতেছে, কিছুক্ষণ অপেক্ষা করুন।"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-amber-500"
+              />
+            </div>
+
+            <div className="md:col-span-4">
+              <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                আনুমানিক সময় নোটিস (তথ্য হিসেবে ইউজারদের দেখাবে):
+              </label>
+              <input
+                type="text"
+                value={maintenanceEstimate}
+                onChange={(e) => setMaintenanceEstimate(e.target.value)}
+                placeholder="15-30 মিনিট / কাজ শেষ না হওয়া পর্যন্ত"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-amber-500 font-mono"
+              />
+            </div>
           </div>
 
-          <div className="md:col-span-2">
-            <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-              আনুমানিক সময়:
-            </label>
-            <input
-              type="text"
-              value={maintenanceEstimate}
-              onChange={(e) => setMaintenanceEstimate(e.target.value)}
-              placeholder="15-30 মিনিট"
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-amber-500 font-mono"
-            />
-          </div>
+          {/* Quick Preset Buttons for Estimated Time */}
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[11px] text-slate-400 mr-1">কুইক সিলেক্ট:</span>
+              {[
+                'কাজ শেষ না হওয়া পর্যন্ত',
+                '১৫-৩০ মিনিট',
+                '১ ঘণ্টা',
+                '২ ঘণ্টা',
+                'আজকের জন্য সাময়িক বন্ধ'
+              ].map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setMaintenanceEstimate(preset)}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors cursor-pointer border ${
+                    maintenanceEstimate === preset
+                      ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 font-bold'
+                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                  }`}
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
 
-          <div className="md:col-span-2 flex items-end">
             <button
               type="button"
               onClick={() => {
@@ -437,11 +488,11 @@ export const AdminPortal: React.FC = () => {
                   maintenanceNotice: maintenanceText,
                   maintenanceEstimateTime: maintenanceEstimate
                 });
-                toast('নোটিস সফলভাবে আপডেট হয়েছে!', 'success');
+                toast('মেইনটেন্যান্স নোটিস ও সময় সফলভাবে আপডেট হয়েছে!', 'success');
               }}
-              className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl cursor-pointer transition-colors"
+              className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl cursor-pointer transition-colors shadow-sm"
             >
-              Save Notice
+              Save Notice & Time Only
             </button>
           </div>
         </div>
@@ -1969,14 +2020,14 @@ export const AdminPortal: React.FC = () => {
 
           {/* Maintenance Mode Detailed Config */}
           <div className="p-5 rounded-2xl bg-slate-950 border border-amber-500/30 space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
                 <h4 className="font-bold text-sm text-amber-400 flex items-center gap-2">
                   <Wrench className="w-4 h-4" />
-                  <span>Site Maintenance Mode (সাইটের কাজ চলার সময় অফ/নোটিস অপশন)</span>
+                  <span>Site Maintenance Mode (সাইটের কাজ চলার সময় বন্ধ ও নোটিস অপশন)</span>
                 </h4>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  সাইটে কাজ করার সময় পুরো সাইট বন্ধ না করে ইউজারদের জন্য নোটিস মেসেজ প্রদর্শন করুন।
+                  মেইনটেন্যান্স চালু থাকলে সাধারণ ইউজাররা নোটিস পেজ দেখবে, তবে এডমিন স্বাভাবিকভাবে কাজ করতে পারবে।
                 </p>
               </div>
 
@@ -1984,8 +2035,17 @@ export const AdminPortal: React.FC = () => {
                 type="button"
                 onClick={() => {
                   const nextState = !settings.isMaintenanceMode;
-                  updateSettings({ isMaintenanceMode: nextState });
-                  toast(nextState ? 'মেইনটেন্যান্স মোড অন করা হয়েছে' : 'মেইনটেন্যান্স মোড অফ করা হয়েছে', 'info');
+                  updateSettings({ 
+                    isMaintenanceMode: nextState,
+                    maintenanceNotice: maintenanceText,
+                    maintenanceEstimateTime: maintenanceEstimate
+                  });
+                  toast(
+                    nextState 
+                      ? '🔴 মেইনটেন্যান্স মোড অন করা হয়েছে! এডমিন নিজে লাইভ না করা পর্যন্ত বন্ধ থাকবে।' 
+                      : '🟢 মেইনটেন্যান্স মোড অফ করা হয়েছে! সাইট সম্পূর্ণ লাইভ।', 
+                    nextState ? 'info' : 'success'
+                  );
                 }}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   settings.isMaintenanceMode
@@ -1997,6 +2057,14 @@ export const AdminPortal: React.FC = () => {
               </button>
             </div>
 
+            {/* Manual Lock Assurance */}
+            <div className="p-3 rounded-xl bg-slate-900 border border-amber-500/20 text-xs text-slate-300 flex items-start gap-2.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+              <span>
+                <strong>১০০% ম্যানুয়াল কন্ট্রোল:</strong> সাইটে কোনো অটো-টাইমার নেই। আপনি মিনিট লিখলেও বা যত ঘণ্টাই কাজ চলুক, সাইট কখনই একা একা বা অটো চালু হবে না। এডমিন নিজে এসে 'Turn OFF Maintenance (সাইট লাইভ করুন)' বাটনে ক্লিক না করা পর্যন্ত সাইট বন্ধ/মেইনটেন্যান্স মোডেই থাকবে।
+              </span>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
                 <label className="block font-semibold text-slate-300 mb-1">
@@ -2004,10 +2072,10 @@ export const AdminPortal: React.FC = () => {
                 </label>
                 <textarea
                   rows={2}
-                  value={settings.maintenanceNotice || ''}
-                  onChange={(e) => updateSettings({ maintenanceNotice: e.target.value })}
+                  value={maintenanceText}
+                  onChange={(e) => setMaintenanceText(e.target.value)}
                   placeholder="সাইটের কাজ চলতেছে, কিছুক্ষণ অপেক্ষা করুন।"
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-slate-100"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-amber-500"
                 />
               </div>
 
@@ -2017,12 +2085,45 @@ export const AdminPortal: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  value={settings.maintenanceEstimateTime || ''}
-                  onChange={(e) => updateSettings({ maintenanceEstimateTime: e.target.value })}
-                  placeholder="15-30 মিনিট"
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-slate-100 font-mono"
+                  value={maintenanceEstimate}
+                  onChange={(e) => setMaintenanceEstimate(e.target.value)}
+                  placeholder="15-30 মিনিট / কাজ শেষ না হওয়া পর্যন্ত"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-slate-100 font-mono placeholder:text-slate-600 focus:outline-none focus:border-amber-500"
                 />
+
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {['কাজ শেষ না হওয়া পর্যন্ত', '১৫-৩০ মিনিট', '১ ঘণ্টা', '২ ঘণ্টা'].map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setMaintenanceEstimate(p)}
+                      className={`text-[10px] px-2 py-0.5 rounded border transition-colors cursor-pointer ${
+                        maintenanceEstimate === p
+                          ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold'
+                          : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
               </div>
+            </div>
+
+            <div className="flex justify-end pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  updateSettings({
+                    maintenanceNotice: maintenanceText,
+                    maintenanceEstimateTime: maintenanceEstimate
+                  });
+                  toast('মেইনটেন্যান্স নোটিস ও সময় সফলভাবে সেভ হয়েছে!', 'success');
+                }}
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl cursor-pointer transition-colors shadow-sm"
+              >
+                Save Maintenance Notice
+              </button>
             </div>
           </div>
 

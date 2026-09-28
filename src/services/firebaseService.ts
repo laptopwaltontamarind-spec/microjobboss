@@ -6,6 +6,7 @@ import {
   deleteDoc, 
   onSnapshot, 
   getDocs,
+  getDoc,
   writeBatch
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -190,9 +191,41 @@ export const firestoreSaveResetRequest = async (reset: PasswordResetRequest) => 
 
 export const firestoreSaveSettings = async (gateways: Record<string, GatewayConfigItem>, settings: PlatformSettings) => {
   try {
-    await setDoc(doc(db, COLLECTIONS.SETTINGS, 'main_config'), { gateways, settings }, { merge: true });
+    const ref = doc(db, COLLECTIONS.SETTINGS, 'main_config');
+    await setDoc(ref, { gateways, settings }, { merge: true });
   } catch (e) {
     console.error('Error saving settings to Firestore:', e);
+  }
+};
+
+// Safely update ONLY platform settings fields (e.g. maintenance mode, notices, stats) without touching gateways or other state
+export const firestoreUpdateSettingsOnly = async (settingsUpdates: Partial<PlatformSettings>) => {
+  try {
+    const ref = doc(db, COLLECTIONS.SETTINGS, 'main_config');
+    const updatePayload: Record<string, any> = {};
+    for (const [key, value] of Object.entries(settingsUpdates)) {
+      if (value !== undefined) {
+        updatePayload[`settings.${key}`] = value;
+      }
+    }
+    await updateDoc(ref, updatePayload);
+  } catch (e) {
+    try {
+      const ref = doc(db, COLLECTIONS.SETTINGS, 'main_config');
+      await setDoc(ref, { settings: settingsUpdates }, { merge: true });
+    } catch (err2) {
+      console.error('Error updating settings in Firestore:', err2);
+    }
+  }
+};
+
+// Safely update ONLY gateways configuration without touching platform settings or maintenance mode
+export const firestoreSaveGateways = async (gateways: Record<string, GatewayConfigItem>) => {
+  try {
+    const ref = doc(db, COLLECTIONS.SETTINGS, 'main_config');
+    await setDoc(ref, { gateways }, { merge: true });
+  } catch (e) {
+    console.error('Error saving gateways to Firestore:', e);
   }
 };
 
@@ -253,12 +286,19 @@ export const seedInitialFirestoreData = async (
       defaultUsers.forEach(u => {
         batch.set(doc(db, COLLECTIONS.USERS, u.id), u);
       });
-      batch.set(doc(db, COLLECTIONS.SETTINGS, 'main_config'), {
+      await batch.commit();
+      console.log('Firebase Firestore users initialized with default data & Admin.');
+    }
+
+    // Only create main_config if it completely does NOT exist yet, so we never reset admin maintenance mode or settings
+    const configRef = doc(db, COLLECTIONS.SETTINGS, 'main_config');
+    const configSnap = await getDoc(configRef);
+    if (!configSnap.exists()) {
+      await setDoc(configRef, {
         gateways: defaultGateways,
         settings: defaultSettings
       });
-      await batch.commit();
-      console.log('Firebase Firestore initialized with default data & Super Admin.');
+      console.log('Firebase Firestore main_config initialized with initial settings.');
     }
   } catch (e) {
     console.warn('Initial Firestore seed check:', e);
