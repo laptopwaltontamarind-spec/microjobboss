@@ -71,6 +71,17 @@
         { "fieldName": "gateways", "fieldType": "object" },
         { "fieldName": "plans", "fieldType": "array" }
       ]
+    },
+    {
+      "collectionName": "platform_settings",
+      "fields": [
+        { "fieldName": "id", "fieldType": "string" },
+        { "fieldName": "settings", "fieldType": "object" },
+        { "fieldName": "isPlanPurchaseEnabled", "fieldType": "boolean" },
+        { "fieldName": "isClaimEnabled", "fieldType": "boolean" },
+        { "fieldName": "claimDisabledNotice", "fieldType": "string" },
+        { "fieldName": "isMaintenanceMode", "fieldType": "boolean" }
+      ]
     }
   ]
 }

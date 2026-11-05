@@ -151,6 +151,7 @@ export const AdminPortal: React.FC = () => {
   const [maintenanceText, setMaintenanceText] = useState(settings.maintenanceNotice || 'সাইটের কাজ চলতেছে, কিছুক্ষণ অপেক্ষা করুন।');
   const [maintenanceEstimate, setMaintenanceEstimate] = useState(settings.maintenanceEstimateTime || '15-30 মিনিট');
   const [planNoticeText, setPlanNoticeText] = useState(settings.planPurchaseDisabledNotice || '⚠️ অ্যাডমিন কর্তৃক সাময়িকভাবে নতুন ইনভেস্টমেন্ট প্ল্যান কেনা বন্ধ রাখা হয়েছে। খুব শীঘ্রই পুনরায় চালু করা হবে। সাময়িক অসুবিধার জন্য আমরা দুঃখিত।');
+  const [claimNoticeText, setClaimNoticeText] = useState(settings.claimDisabledNotice || '⚠️ অ্যাডমিন কর্তৃক সাময়িকভাবে ডেইলি মাইনিং প্রফিট ক্লেইম (TK Claim) বন্ধ রাখা হয়েছে। খুব শীঘ্রই পুনরায় চালু করা হবে। সাময়িক অসুবিধার জন্য আমরা আন্তরিকভাবে দুঃখিত।');
 
   useEffect(() => {
     if (settings.maintenanceNotice) {
@@ -169,6 +170,12 @@ export const AdminPortal: React.FC = () => {
       setPlanNoticeText(settings.planPurchaseDisabledNotice);
     }
   }, [settings.planPurchaseDisabledNotice]);
+
+  useEffect(() => {
+    if (settings.claimDisabledNotice) {
+      setClaimNoticeText(settings.claimDisabledNotice);
+    }
+  }, [settings.claimDisabledNotice]);
 
   // Manual live ticker injection state
   const [tickerPhone, setTickerPhone] = useState('01798123456');
@@ -498,58 +505,118 @@ export const AdminPortal: React.FC = () => {
         </div>
       </div>
 
-      {/* QUICK STATUS STRIP: PLAN PURCHASE & LIVE ENGINE */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-slate-900/90 border border-slate-800 rounded-2xl">
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-xl border ${
-            settings.isPlanPurchaseEnabled !== false
-              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-              : 'bg-rose-500/10 border-rose-500/30 text-rose-400 animate-pulse'
-          }`}>
-            <Zap className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-200">
-                মেম্বার ইনভেস্টমেন্ট প্ল্যান কেনা:
-              </span>
-              <span className={`px-2 py-0.5 rounded text-[10px] font-black font-mono border ${
-                settings.isPlanPurchaseEnabled !== false
-                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                  : 'bg-rose-500/20 text-rose-300 border-rose-500/30'
-              }`}>
-                {settings.isPlanPurchaseEnabled !== false ? 'চালু আছে (ON)' : 'বন্ধ আছে (OFF)'}
+      {/* QUICK STATUS STRIP: PLAN PURCHASE & DAILY TK CLAIM CONTROLLERS */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        {/* 1. Plan Purchase Controller */}
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-slate-900/90 border border-slate-800 rounded-2xl">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-xl border ${
+              settings.isPlanPurchaseEnabled !== false
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                : 'bg-rose-500/10 border-rose-500/30 text-rose-400 animate-pulse'
+            }`}>
+              <Zap className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-200">
+                  ইনভেস্টমেন্ট প্ল্যান কেনা:
+                </span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-black font-mono border ${
+                  settings.isPlanPurchaseEnabled !== false
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                    : 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+                }`}>
+                  {settings.isPlanPurchaseEnabled !== false ? 'চালু আছে (ON)' : 'বন্ধ আছে (OFF)'}
+                </span>
+              </div>
+              <span className="text-[11px] text-slate-400">
+                {settings.isPlanPurchaseEnabled !== false
+                  ? 'মেম্বাররা স্বাভাবিকভাবে প্ল্যান ক্রয় করতে পারছে।'
+                  : 'নতুন প্ল্যান কেনা সাময়িকভাবে বন্ধ রাখা হয়েছে।'}
               </span>
             </div>
-            <span className="text-[11px] text-slate-400">
-              {settings.isPlanPurchaseEnabled !== false
-                ? 'সাধারণ ইউজাররা স্বাভাবিকভাবে ৮.৫০% মাইনিং প্ল্যান ক্রয় করতে পারছে।'
-                : 'নতুন প্ল্যান কেনা সাময়িকভাবে অফ রাখা আছে।'}
-            </span>
           </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              const nextState = settings.isPlanPurchaseEnabled === false ? true : false;
+              updateSettings({ isPlanPurchaseEnabled: nextState });
+              toast(
+                nextState 
+                  ? 'ইনভেস্টমেন্ট প্ল্যান কেনা চালু (ON) করা হয়েছে!' 
+                  : 'ইনভেস্টমেন্ট প্ল্যান কেনা বন্ধ (OFF) করা হয়েছে!',
+                nextState ? 'success' : 'info'
+              );
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+              settings.isPlanPurchaseEnabled !== false
+                ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+            }`}
+          >
+            <Power className="w-3.5 h-3.5" />
+            <span>{settings.isPlanPurchaseEnabled !== false ? 'প্ল্যান কেনা বন্ধ করুন' : 'প্ল্যান কেনা চালু করুন'}</span>
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            const nextState = settings.isPlanPurchaseEnabled === false ? true : false;
-            updateSettings({ isPlanPurchaseEnabled: nextState });
-            toast(
-              nextState 
-                ? 'ইনভেস্টমেন্ট প্ল্যান কেনা চালু (ON) করা হয়েছে!' 
-                : 'ইনভেস্টমেন্ট প্ল্যান কেনা বন্ধ (OFF) করা হয়েছে!',
-              nextState ? 'success' : 'info'
-            );
-          }}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-            settings.isPlanPurchaseEnabled !== false
-              ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30'
-              : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-          }`}
-        >
-          <Power className="w-3.5 h-3.5" />
-          <span>{settings.isPlanPurchaseEnabled !== false ? 'প্ল্যান কেনা বন্ধ করুন (Turn OFF)' : 'প্ল্যান কেনা চালু করুন (Turn ON)'}</span>
-        </button>
+        {/* 2. Daily TK Claim Controller */}
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-slate-900/90 border border-slate-800 rounded-2xl">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-xl border ${
+              settings.isClaimEnabled !== false
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                : 'bg-rose-500/10 border-rose-500/30 text-rose-400 animate-pulse'
+            }`}>
+              <Coins className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-200">
+                  ডেইলি টাকা ক্লেইম (TK Claim):
+                </span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-black font-mono border ${
+                  settings.isClaimEnabled !== false
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                    : 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+                }`}>
+                  {settings.isClaimEnabled !== false ? 'চালু আছে (ON)' : 'বন্ধ আছে (OFF)'}
+                </span>
+              </div>
+              <span className="text-[11px] text-slate-400">
+                {settings.isClaimEnabled !== false
+                  ? 'মেম্বাররা ২৪ ঘণ্টা পরপর তাদের প্রফিট ক্লেইম করতে পারছে।'
+                  : 'টাকা ক্লেইম অপশন সাময়িকভাবে বন্ধ রাখা হয়েছে।'}
+              </span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              const nextState = settings.isClaimEnabled === false ? true : false;
+              updateSettings({ 
+                isClaimEnabled: nextState,
+                claimDisabledNotice: claimNoticeText
+              });
+              toast(
+                nextState 
+                  ? 'মেম্বারদের টাকা ক্লেইম (TK Claim) চালু (ON) করা হয়েছে!' 
+                  : 'মেম্বারদের টাকা ক্লেইম (TK Claim) বন্ধ (OFF) করা হয়েছে!',
+                nextState ? 'success' : 'info'
+              );
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+              settings.isClaimEnabled !== false
+                ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+            }`}
+          >
+            <Power className="w-3.5 h-3.5" />
+            <span>{settings.isClaimEnabled !== false ? 'টাকা ক্লেইম বন্ধ করুন' : 'টাকা ক্লেইম চালু করুন'}</span>
+          </button>
+        </div>
       </div>
 
       {/* PRIMARY EXECUTIVE KPI STATS BAR */}
@@ -2389,6 +2456,123 @@ export const AdminPortal: React.FC = () => {
                       onClick={() => {
                         updateSettings({ planPurchaseDisabledNotice: planNoticeText });
                         toast('নোটিস টেক্সট সফলভাবে সেভ হয়েছে', 'success');
+                      }}
+                      className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg cursor-pointer"
+                    >
+                      Save Notice Text
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Member Daily TK Claim Controller (Admin On/Off Control) */}
+            <div className={`p-4 bg-slate-950/90 border-2 rounded-2xl space-y-4 shadow-xl transition-all ${
+              settings.isClaimEnabled !== false 
+                ? 'border-emerald-500/40' 
+                : 'border-rose-500/50'
+            }`}>
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <div className="flex items-center gap-2 font-bold text-sm">
+                  <Coins className={`w-4 h-4 ${settings.isClaimEnabled !== false ? 'text-emerald-400' : 'text-rose-400'}`} />
+                  <span className="text-slate-100">Member Profit & TK Claim Control (মেম্বারদের টাকা ক্লেইম নিয়ন্ত্রণ)</span>
+                </div>
+                <span className={`px-2.5 py-0.5 rounded text-[10px] font-black font-mono tracking-wider border ${
+                  settings.isClaimEnabled !== false
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                    : 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
+                }`}>
+                  {settings.isClaimEnabled !== false ? '🟢 TK CLAIM: ACTIVE (অন)' : '🔴 TK CLAIM: OFF / PAUSED (অফ)'}
+                </span>
+              </div>
+
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                অ্যাডমিন এখান থেকে এক ক্লিকেই সাধারণ মেম্বারদের ডেইলি ৮.৫০% মাইনিং প্রফিট ও টাকা ক্লেইম (Claim) অপশন চালু (ON) বা বন্ধ (OFF) রাখতে পারবেন। অফ রাখলে কোনো মেম্বার ক্লেইম করতে পারবে না এবং তাদের স্ক্রিনে নির্ধারিত নোটিস প্রদর্শিত হবে।
+              </p>
+
+              {/* Status Box & 1-Click Toggle Button */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 bg-slate-900/90 rounded-xl border border-slate-800">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
+                    settings.isClaimEnabled !== false
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                      : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                  }`}>
+                    {settings.isClaimEnabled !== false ? <CheckCircle2 className="w-5 h-5" /> : <Ban className="w-5 h-5" />}
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-200 block">
+                      বর্তমান অবস্থা: {settings.isClaimEnabled !== false ? 'টাকা ক্লেইম চালু আছে (ON)' : 'টাকা ক্লেইম বন্ধ আছে (OFF)'}
+                    </span>
+                    <span className="text-[10px] text-slate-400">
+                      {settings.isClaimEnabled !== false 
+                        ? 'মেম্বাররা ২৪ ঘণ্টা পর পর মাইনিং প্রফিট ওয়ালেটে ক্লেইম করতে পারছে।' 
+                        : 'ইউজারদের জন্য প্রফিট ক্লেইম সাময়িকভাবে বন্ধ ও সুরক্ষিত রাখা হয়েছে।'}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextState = settings.isClaimEnabled === false ? true : false;
+                    updateSettings({
+                      isClaimEnabled: nextState,
+                      claimDisabledNotice: claimNoticeText
+                    });
+                    toast(
+                      nextState
+                        ? '✅ মেম্বারদের টাকা ক্লেইম সফলভাবে চালু (ON) করা হয়েছে!'
+                        : '⏸️ মেম্বারদের টাকা ক্লেইম সাময়িকভাবে বন্ধ (OFF) করা হয়েছে!',
+                      nextState ? 'success' : 'info'
+                    );
+                  }}
+                  className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-black text-xs flex items-center justify-center gap-2 cursor-pointer transition-all shadow-lg ${
+                    settings.isClaimEnabled !== false
+                      ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-600/30'
+                      : 'bg-emerald-600 hover:bg-emerald-500 text-slate-950 shadow-emerald-600/30 font-extrabold'
+                  }`}
+                >
+                  <Power className="w-4 h-4" />
+                  <span>
+                    {settings.isClaimEnabled !== false 
+                      ? 'Turn OFF TK Claim (টাকা ক্লেইম বন্ধ করুন)' 
+                      : 'Turn ON TK Claim (টাকা ক্লেইম চালু করুন)'}
+                  </span>
+                </button>
+              </div>
+
+              {/* Notice Message Customization */}
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                  টাকা ক্লেইম বন্ধ থাকাকালীন মেম্বারদের প্রদর্শিত নোটিস (Notice text shown to users when paused):
+                </label>
+                <div className="space-y-2">
+                  <textarea
+                    rows={2}
+                    value={claimNoticeText}
+                    onChange={(e) => setClaimNoticeText(e.target.value)}
+                    placeholder="⚠️ অ্যাডমিন কর্তৃক সাময়িকভাবে ডেইলি মাইনিং প্রফিট ক্লেইম বন্ধ রাখা হয়েছে..."
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 placeholder:text-slate-600 focus:border-amber-500 focus:outline-none"
+                  />
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const defaultText = '⚠️ অ্যাডমিন কর্তৃক সাময়িকভাবে ডেইলি মাইনিং প্রফিট ক্লেইম (TK Claim) বন্ধ রাখা হয়েছে। খুব শীঘ্রই পুনরায় চালু করা হবে। সাময়িক অসুবিধার জন্য আমরা আন্তরিকভাবে দুঃখিত।';
+                        setClaimNoticeText(defaultText);
+                        updateSettings({ claimDisabledNotice: defaultText });
+                        toast('ডিফল্ট নোটিস সেট করা হয়েছে', 'info');
+                      }}
+                      className="text-[10px] text-slate-400 hover:text-slate-200 underline cursor-pointer"
+                    >
+                      Reset to Default Notice
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateSettings({ claimDisabledNotice: claimNoticeText });
+                        toast('ক্লেইম নোটিস টেক্সট সফলভাবে সেভ হয়েছে', 'success');
                       }}
                       className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg cursor-pointer"
                     >

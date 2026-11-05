@@ -224,6 +224,8 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
   maxMemberLimit: 100000, // site member capacity limit
   isPlanPurchaseEnabled: true, // admin can turn ON or OFF plan buying for members
   planPurchaseDisabledNotice: '⚠️ অ্যাডমিন কর্তৃক সাময়িকভাবে নতুন ইনভেস্টমেন্ট প্ল্যান কেনা বন্ধ রাখা হয়েছে। খুব শীঘ্রই পুনরায় চালু করা হবে। সাময়িক অসুবিধার জন্য আমরা দুঃখিত।',
+  isClaimEnabled: true, // admin can turn ON or OFF daily tk/profit claiming for members
+  claimDisabledNotice: '⚠️ অ্যাডমিন কর্তৃক সাময়িকভাবে ডেইলি মাইনিং প্রফিট ক্লেইম (TK Claim) বন্ধ রাখা হয়েছে। খুব শীঘ্রই পুনরায় চালু করা হবে। সাময়িক অসুবিধার জন্য আমরা আন্তরিকভাবে দুঃখিত।',
   telegramSupportUrl: 'https://t.me/microjobboss_official',
   whatsappSupportUrl: 'https://wa.me/8801700000000',
   helplinePhone: '+880 1700-000000',

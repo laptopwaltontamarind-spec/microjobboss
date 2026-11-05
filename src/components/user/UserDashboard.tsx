@@ -22,6 +22,7 @@ import {
   Check, 
   AlertCircle,
   AlertTriangle,
+  Ban,
   Sparkles,
   ChevronRight,
   TrendingUp,
@@ -510,7 +511,11 @@ export const UserDashboard: React.FC = () => {
                       <p className="text-[11px] font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" /> ২৪ ঘণ্টা কাউন্টডাউন টাইমার
                       </p>
-                      {primaryCooldown?.isReady ? (
+                      {settings.isClaimEnabled === false ? (
+                        <span className="text-[10px] bg-rose-500/20 text-rose-300 font-bold px-2 py-0.5 rounded border border-rose-500/30 flex items-center gap-1">
+                          <Ban className="w-2.5 h-2.5" /> ক্লেইম সাময়িক বন্ধ
+                        </span>
+                      ) : primaryCooldown?.isReady ? (
                         <span className="text-[10px] bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded border border-emerald-500/30 animate-pulse">
                           ✓ READY TO CLAIM
                         </span>
@@ -532,14 +537,35 @@ export const UserDashboard: React.FC = () => {
                         <span className="block text-[9px] font-sans font-normal text-slate-500">MIN</span>
                       </div>
                       <span className="text-amber-500">:</span>
-                      <div className={`bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg ${primaryCooldown?.isReady ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      <div className={`bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg ${settings.isClaimEnabled === false ? 'text-rose-400' : primaryCooldown?.isReady ? 'text-emerald-400' : 'text-amber-400'}`}>
                         {String(primaryCooldown ? primaryCooldown.seconds : 0).padStart(2, '0')}
                         <span className="block text-[9px] font-sans font-normal text-slate-500">SEC</span>
                       </div>
                     </div>
 
+                    {/* Notice banner when admin disabled claim */}
+                    {settings.isClaimEnabled === false && (
+                      <div className="p-2.5 rounded-xl bg-rose-950/40 border border-rose-500/30 text-left space-y-1">
+                        <div className="flex items-center gap-1.5 text-rose-300 text-xs font-bold">
+                          <Ban className="w-3.5 h-3.5 text-rose-400 flex-shrink-0" />
+                          <span>টাকা ক্লেইম সাময়িকভাবে বন্ধ</span>
+                        </div>
+                        <p className="text-[11px] text-rose-200/90 leading-tight">
+                          {settings.claimDisabledNotice || 'অ্যাডমিন কর্তৃক সাময়িকভাবে ডেইলি মাইনিং প্রফিট ক্লেইম বন্ধ রাখা হয়েছে। খুব শীঘ্রই পুনরায় চালু করা হবে।'}
+                        </p>
+                      </div>
+                    )}
+
                     {primaryActiveInv ? (
-                      primaryCooldown?.isReady ? (
+                      settings.isClaimEnabled === false ? (
+                        <button
+                          disabled
+                          className="w-full py-2.5 bg-rose-500/10 border border-rose-500/30 text-rose-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 cursor-not-allowed opacity-90 select-none"
+                        >
+                          <Lock className="w-3.5 h-3.5 text-rose-400" />
+                          <span>টাকা ক্লেইম সাময়িকভাবে অফ আছে (Claim Paused)</span>
+                        </button>
+                      ) : primaryCooldown?.isReady ? (
                         <button
                           onClick={() => claimMiningReward(primaryActiveInv.id)}
                           className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-1.5 cursor-pointer transition-all animate-pulse"
@@ -584,6 +610,16 @@ export const UserDashboard: React.FC = () => {
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
+
+                {settings.isClaimEnabled === false && (
+                  <div className="p-3 bg-rose-950/40 border border-rose-500/40 rounded-xl flex items-start gap-2.5 text-xs text-rose-200">
+                    <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-rose-300">টাকা ক্লেইম সাময়িকভাবে বন্ধ: </span>
+                      <span>{settings.claimDisabledNotice || 'অ্যাডমিন কর্তৃক সাময়িকভাবে ডেইলি মাইনিং প্রফিট ক্লেইম বন্ধ রাখা হয়েছে। খুব শীঘ্রই পুনরায় চালু করা হবে।'}</span>
+                    </div>
+                  </div>
+                )}
 
                 {userInvestments.length === 0 ? (
                   <div className="text-center py-10 bg-slate-950/60 border border-dashed border-slate-800 rounded-xl space-y-3">
@@ -649,7 +685,12 @@ export const UserDashboard: React.FC = () => {
                           <div className="flex justify-between items-center text-[11px] text-slate-400 pt-1 border-t border-slate-900">
                             <span>Claimed: ৳{inv.totalClaimed.toLocaleString()} / ৳{inv.totalExpectedReturn.toLocaleString()}</span>
                             {inv.status === 'active' && inv.daysRemaining > 0 ? (
-                              cooldown.isReady ? (
+                              settings.isClaimEnabled === false ? (
+                                <div className="flex items-center gap-1 px-2.5 py-1 bg-rose-950/50 border border-rose-500/30 rounded-lg text-rose-300 text-[10px] font-bold select-none" title="অ্যাডমিন কর্তৃক সাময়িকভাবে টাকা ক্লেইম বন্ধ আছে">
+                                  <Ban className="w-3 h-3 text-rose-400" />
+                                  <span>ক্লেইম সাময়িক অফ</span>
+                                </div>
+                              ) : cooldown.isReady ? (
                                 <button
                                   onClick={() => claimMiningReward(inv.id)}
                                   className="px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 text-slate-950 font-bold text-xs rounded-lg shadow-md shadow-emerald-500/20 flex items-center gap-1 cursor-pointer transition-all animate-pulse"

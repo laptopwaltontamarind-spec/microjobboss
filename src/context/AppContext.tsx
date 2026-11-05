@@ -289,6 +289,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       maxMemberLimit: typeof stored?.maxMemberLimit === 'number' ? stored.maxMemberLimit : 100000,
       isPlanPurchaseEnabled: typeof stored?.isPlanPurchaseEnabled === 'boolean' ? stored.isPlanPurchaseEnabled : true,
       planPurchaseDisabledNotice: stored?.planPurchaseDisabledNotice || DEFAULT_SETTINGS.planPurchaseDisabledNotice,
+      isClaimEnabled: typeof stored?.isClaimEnabled === 'boolean' ? stored.isClaimEnabled : true,
+      claimDisabledNotice: stored?.claimDisabledNotice || DEFAULT_SETTINGS.claimDisabledNotice,
       isMaintenanceMode: typeof stored?.isMaintenanceMode === 'boolean' ? stored.isMaintenanceMode : false,
       maintenanceNotice: stored?.maintenanceNotice || DEFAULT_SETTINGS.maintenanceNotice,
       maintenanceEstimateTime: stored?.maintenanceEstimateTime || DEFAULT_SETTINGS.maintenanceEstimateTime
@@ -382,6 +384,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const comm = cloudSettings?.referralCommissionPercent ?? 5.0;
           const memberLimit = typeof cloudSettings?.maxMemberLimit === 'number' ? cloudSettings.maxMemberLimit : (prev.maxMemberLimit ?? 100000);
           const isPlanPurchase = typeof cloudSettings?.isPlanPurchaseEnabled === 'boolean' ? cloudSettings.isPlanPurchaseEnabled : (prev.isPlanPurchaseEnabled ?? true);
+          const isClaim = typeof cloudSettings?.isClaimEnabled === 'boolean' ? cloudSettings.isClaimEnabled : (prev.isClaimEnabled ?? true);
           // Maintenance mode state strictly adheres to cloudSettings if boolean, otherwise keeps current state
           const isMaintenance = typeof cloudSettings?.isMaintenanceMode === 'boolean'
             ? cloudSettings.isMaintenanceMode
@@ -395,7 +398,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             referralCommissionPercent: comm,
             maxMemberLimit: memberLimit,
             isPlanPurchaseEnabled: isPlanPurchase,
-            planPurchaseDisabledNotice: cloudSettings?.planPurchaseDisabledNotice || prev.planPurchaseDisabledNotice || DEFAULT_SETTINGS.planPurchaseDisabledNotice
+            planPurchaseDisabledNotice: cloudSettings?.planPurchaseDisabledNotice || prev.planPurchaseDisabledNotice || DEFAULT_SETTINGS.planPurchaseDisabledNotice,
+            isClaimEnabled: isClaim,
+            claimDisabledNotice: cloudSettings?.claimDisabledNotice || prev.claimDisabledNotice || DEFAULT_SETTINGS.claimDisabledNotice
           };
           setStorage(STORAGE_KEYS.SETTINGS, updated);
           return updated;
@@ -915,6 +920,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Claim 24-hour mining reward (1st claim immediate, subsequent claims 24h, max 30 days)
   const claimMiningReward = (investmentId: string) => {
     if (!currentUser) return { success: false, message: 'Not logged in' };
+
+    // Check if admin has disabled profit/tk claiming
+    if (settings.isClaimEnabled === false) {
+      const notice = settings.claimDisabledNotice || '⚠️ অ্যাডমিন কর্তৃক সাময়িকভাবে ডেইলি মাইনিং প্রফিট ক্লেইম (TK Claim) বন্ধ রাখা হয়েছে। খুব শীঘ্রই পুনরায় চালু করা হবে।';
+      toast(notice, 'error');
+      return { success: false, message: notice };
+    }
 
     const inv = investments.find(i => i.id === investmentId && i.userId === currentUser.id);
     if (!inv || inv.status !== 'active') {

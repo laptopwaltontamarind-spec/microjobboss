@@ -194,6 +194,8 @@ export interface PlatformSettings {
   maxMemberLimit?: number; // site member capacity limit, can be increased or decreased by admin
   isPlanPurchaseEnabled?: boolean; // admin can turn ON or OFF plan buying for members
   planPurchaseDisabledNotice?: string; // notice message when plan purchase is paused
+  isClaimEnabled?: boolean; // admin can turn ON or OFF daily tk/profit claiming for members
+  claimDisabledNotice?: string; // notice message when profit claiming is paused
   telegramSupportUrl: string;
   whatsappSupportUrl: string;
   helplinePhone: string;
